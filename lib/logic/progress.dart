@@ -25,17 +25,13 @@ class Progress extends ChangeNotifier {
 
   bool isDone(Lesson l) => completed.contains(l.id);
 
-  /// A lesson is open if it is the first one, or the one before it is done.
-  /// Bonus units are open from the start (one lesson after another inside the unit).
+  /// Lessons open one after another within each HSK course. The first lesson of
+  /// HSK 2 and HSK 3 is always open, so you can start a later course straight away.
   bool isUnlocked(Lesson l) {
     final unit = course.firstWhere((u) => u.lessons.any((x) => x.id == l.id));
-    if (unit.bonus) {
-      final i = unit.lessons.indexWhere((x) => x.id == l.id);
-      return i == 0 || isDone(unit.lessons[i - 1]);
-    }
-    final main = [for (final u in course) if (!u.bonus) ...u.lessons];
-    final i = main.indexWhere((x) => x.id == l.id);
-    return i <= 0 || isDone(main[i - 1]);
+    final chain = lessonsOf(unit.level);
+    final i = chain.indexWhere((x) => x.id == l.id);
+    return i <= 0 || isDone(chain[i - 1]);
   }
 
   // ---- Spaced review ----
@@ -137,9 +133,77 @@ class Progress extends ChangeNotifier {
     if (l.kind != LessonKind.practice) {
       await _prefs.setStringList('completed', {...completed, l.id}.toList());
     }
-    await _prefs.setInt('xp', xp + earnedXp);
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
 
+  // ---- Daily goal ----
+
+  /// XP earned on each recent day, as {"2026-11-19": 35}.
+  Map<String, int> get _days {
+    try {
+      return (jsonDecode(_prefs.getString('xpDays') ?? '{}') as Map).map((k, v) => MapEntry(k as String, v as int));
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static String _key(DateTime d) =>
+      '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+  /// XP earned today.
+  int get xpToday => _days[_key(_today())] ?? 0;
+
+  /// XP earned on each of the last 7 days, oldest first (today is last).
+  List<int> get lastWeekXp {
+    final d = _days, t = _today();
+    return [for (var i = 6; i >= 0; i--) d[_key(t.subtract(Duration(days: i)))] ?? 0];
+  }
+
+  /// How much XP a day the learner is aiming for.
+  int get dailyGoal => _prefs.getInt('dailyGoal') ?? 20;
+  Future<void> setDailyGoal(int v) async {
+    await _prefs.setInt('dailyGoal', v);
+    notifyListeners();
+  }
+
+  bool get goalMetToday => xpToday >= dailyGoal;
+
+  /// Called when the daily goal is reached (used to update the reminders).
+  VoidCallback? onGoalChanged;
+
+  /// Adds XP to the total and to today, and counts today for the streak.
+  Future<void> _addXp(int n) async {
+    final wasMet = goalMetToday;
+    await _prefs.setInt('xp', xp + n);
+    final d = _days, today = _key(_today());
+    d[today] = (d[today] ?? 0) + n;
+    // Keep only the last few weeks.
+    final keys = d.keys.toList()..sort();
+    for (final k in keys.take(keys.length > 30 ? keys.length - 30 : 0)) {
+      d.remove(k);
+    }
+    await _prefs.setString('xpDays', jsonEncode(d));
     await _bumpStreak();
+    if (!wasMet && goalMetToday) onGoalChanged?.call();
+  }
+
+  /// XP from practice outside lessons (speaking practice, the exam).
+  Future<void> addXp(int n) async {
+    await _addXp(n);
+    notifyListeners();
+  }
+
+  // ---- Mini exam ----
+
+  /// Best mini exam score out of 200, or null if never taken.
+  int? get bestExam => _prefs.getInt('examBest');
+  int get examsTaken => _prefs.getInt('examsTaken') ?? 0;
+
+  Future<void> finishExam(int score, int earnedXp) async {
+    if (score > (bestExam ?? -1)) await _prefs.setInt('examBest', score);
+    await _prefs.setInt('examsTaken', examsTaken + 1);
+    await _addXp(earnedXp);
     notifyListeners();
   }
 
@@ -171,13 +235,12 @@ class Progress extends ChangeNotifier {
 
   Future<void> finishStory(String id, int earnedXp) async {
     await _prefs.setStringList('storiesRead', {...storiesRead, id}.toList());
-    await _prefs.setInt('xp', xp + earnedXp);
-    await _bumpStreak();
+    await _addXp(earnedXp);
     notifyListeners();
   }
 
   Future<void> reset() async {
-    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead']) {
+    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examsTaken']) {
       await _prefs.remove(k);
     }
     notifyListeners();

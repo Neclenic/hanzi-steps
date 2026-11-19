@@ -6,6 +6,7 @@ import '../logic/exercises.dart';
 import '../logic/progress.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
+import '../widgets/anim.dart';
 import '../widgets/character_writer.dart';
 import '../widgets/tone_shape.dart';
 
@@ -255,7 +256,23 @@ class _LessonScreenState extends State<LessonScreen> {
       Expanded(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: KeyedSubtree(key: ValueKey(_index), child: _stepView(_step)),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, anim) => FadeTransition(
+              opacity: anim,
+              child: SlideTransition(
+                position: Tween(begin: const Offset(0.08, 0), end: Offset.zero).animate(anim),
+                child: child,
+              ),
+            ),
+            layoutBuilder: (current, previous) => Stack(alignment: Alignment.topCenter, fit: StackFit.passthrough, children: [
+              ...previous,
+              if (current != null) current,
+            ]),
+            child: KeyedSubtree(key: ValueKey(_index), child: _stepView(_step)),
+          ),
         ),
       ),
       _bottomBar(),
@@ -322,7 +339,10 @@ class _LessonScreenState extends State<LessonScreen> {
       color: panel,
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
       child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        if (feedback != null) ...[feedback, const SizedBox(height: 12)],
+        if (feedback != null) ...[
+          FadeSlideIn(key: ValueKey('fb$_index'), from: const Offset(0, 0.4), child: feedback),
+          const SizedBox(height: 12),
+        ],
         SizedBox(
           height: 52,
           child: FilledButton(
@@ -351,17 +371,18 @@ class _LessonScreenState extends State<LessonScreen> {
   Widget _results() {
     final scheme = Theme.of(context).colorScheme;
     final pct = _questions == 0 ? 100 : (_firstTryRight * 100 / _questions).round();
-    return Padding(
+    return Stack(children: [
+      Padding(
       padding: const EdgeInsets.all(32),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Text('🎉', style: TextStyle(fontSize: 72)),
+      child: Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const PopIn(child: Text('🎉', style: TextStyle(fontSize: 72))),
         const SizedBox(height: 12),
         Text(widget.lesson.kind == LessonKind.practice ? 'Practice complete!' : 'Lesson complete!', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
         Text(widget.lesson.title, style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 32),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _ResultTile(label: 'XP earned', value: '+$_earnedXp', color: Colors.amber.shade700),
+          _ResultTile(label: 'XP earned', count: _earnedXp, prefix: '+', value: '', color: Colors.amber.shade700),
           const SizedBox(width: 16),
           _ResultTile(label: 'First-try accuracy', value: '$pct%', color: _green),
           const SizedBox(width: 16),
@@ -377,8 +398,10 @@ class _LessonScreenState extends State<LessonScreen> {
             child: const Text('BACK TO PATH', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
-      ]),
-    );
+      ])),
+      ),
+      const Positioned.fill(child: Confetti()),
+    ]);
   }
 }
 
@@ -386,7 +409,9 @@ class _ResultTile extends StatelessWidget {
   final String label;
   final String value;
   final Color color;
-  const _ResultTile({required this.label, required this.value, required this.color});
+  final int? count; // when set, the number counts up
+  final String prefix;
+  const _ResultTile({required this.label, required this.value, required this.color, this.count, this.prefix = ''});
 
   @override
   Widget build(BuildContext context) => Container(
@@ -396,7 +421,9 @@ class _ResultTile extends StatelessWidget {
         child: Column(children: [
           Text(label, textAlign: TextAlign.center, style: TextStyle(color: color, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+          count != null
+              ? CountUp(value: count!, prefix: prefix, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold))
+              : Text(value, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
         ]),
       );
 }
@@ -424,7 +451,7 @@ class _TeachWord extends StatelessWidget {
     return Column(children: [
       const _NewBadge('NEW WORD'),
       const SizedBox(height: 32),
-      Text(word.hanzi, style: const TextStyle(fontSize: 96)),
+      PopIn(child: Text(word.hanzi, style: const TextStyle(fontSize: 96))),
       SpeakButton(word.hanzi),
       Text(word.pinyin, style: TextStyle(fontSize: 30, color: scheme.primary, fontWeight: FontWeight.w600)),
       const SizedBox(height: 12),
@@ -531,6 +558,21 @@ class _ChoiceView extends StatelessWidget {
       border = scheme.primary;
       bg = scheme.primaryContainer.withValues(alpha: 0.5);
     }
+    final wrongPick = checked && i == selected && i != step.correct;
+    final rightAnswer = checked && i == step.correct;
+    return Shake(
+      trigger: wrongPick ? 'wrong' : null,
+      child: AnimatedScale(
+        scale: rightAnswer ? 1.04 : (i == selected && !checked ? 0.98 : 1),
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutBack,
+        child: _optionMaterial(context, i, o, bg, border),
+      ),
+    );
+  }
+
+  Widget _optionMaterial(BuildContext context, int i, ChoiceOption o, Color? bg, Color border) {
+    final scheme = Theme.of(context).colorScheme;
     return Material(
       color: bg ?? scheme.surface,
       shape: RoundedRectangleBorder(

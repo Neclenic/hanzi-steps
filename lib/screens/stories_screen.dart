@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../data/course.dart';
 import '../data/stories.dart';
 import '../logic/progress.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
 import '../logic/story_words.dart';
+import '../widgets/anim.dart';
 
 const _green = Color(0xFF2E9E5B);
 const _red = Color(0xFFD7263D);
@@ -33,7 +35,19 @@ class StoriesScreen extends StatelessWidget {
                   style: TextStyle(color: scheme.onSurfaceVariant),
                 ),
                 const SizedBox(height: 12),
-                for (final s in stories) _StoryCard(story: s, learned: learned, read: read.contains(s.id), progress: progress),
+                // Grouped by level, easiest first.
+                for (final lv in levels) ...[
+                  if (stories.any((s) => levelOf(s).level == lv))
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
+                      child: Text('HSK $lv', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: scheme.primary)),
+                    ),
+                  for (final (i, s) in stories.where((s) => levelOf(s).level == lv).indexed)
+                    FadeSlideIn(
+                      delay: Duration(milliseconds: 50 * i),
+                      child: _StoryCard(story: s, learned: learned, read: read.contains(s.id), progress: progress),
+                    ),
+                ],
               ]),
             ),
           ),
@@ -302,11 +316,11 @@ class _WordSheetState extends State<_WordSheet> {
         Text(w.meaning, style: const TextStyle(fontSize: 18)),
         const SizedBox(height: 8),
         Text(
-          w.isHsk1
-              ? 'HSK 1 word'
+          w.hskLevel != null
+              ? 'HSK ${w.hskLevel} word'
               : course != null
-                  ? 'Bonus word from the course'
-                  : 'Not in HSK 1',
+                  ? 'Extra word from the course'
+                  : 'Not on the HSK 1–3 lists',
           style: TextStyle(color: scheme.onSurfaceVariant),
         ),
         if (course != null) ...[
@@ -391,7 +405,9 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
       for (final (i, o) in q.options.indexed)
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Material(
+          child: Shake(
+            trigger: answered && i == _picked && i != q.correct ? 'wrong$_q' : null,
+            child: Material(
             color: answered && i == q.correct
                 ? _green.withValues(alpha: 0.12)
                 : answered && i == _picked
@@ -422,6 +438,7 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
               ),
             ),
           ),
+          ),
         ),
       const SizedBox(height: 12),
       if (answered)
@@ -437,8 +454,9 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
     ]);
   }
 
-  Widget _result(ColorScheme scheme) => Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Text('📖', style: TextStyle(fontSize: 64)),
+  Widget _result(ColorScheme scheme) => Stack(children: [
+        Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const PopIn(child: Text('📖', style: TextStyle(fontSize: 64))),
         const SizedBox(height: 8),
         const Text('Story finished!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
@@ -450,5 +468,7 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
           onPressed: () => Navigator.pop(context),
           child: const Text('BACK TO STORIES', style: TextStyle(fontWeight: FontWeight.bold)),
         ),
+      ])),
+        if (_right > 0) const Positioned.fill(child: Confetti()),
       ]);
 }

@@ -1,6 +1,9 @@
 // All the learning content for the app lives here.
 // To add more words or lessons, add entries to the lists below.
 
+import 'hsk2.dart';
+import 'hsk3.dart';
+
 class Word {
   final String hanzi; // Chinese characters, e.g. 你好
   final String pinyin; // Pronunciation with tone marks, e.g. nǐ hǎo
@@ -74,8 +77,8 @@ class Unit {
   final int colorValue;
   final List<Lesson> lessons;
   final String tag; // small label above the title, e.g. "HSK 1 · Unit 3"
-  final bool bonus; // bonus units are extra words outside HSK 1, open from the start
-  const Unit(this.title, this.description, this.colorValue, this.lessons, {this.tag = '', this.bonus = false});
+  final int level; // which course this unit belongs to: HSK 1, 2 or 3
+  const Unit(this.title, this.description, this.colorValue, this.lessons, {this.tag = '', this.level = 1});
 }
 
 // Short names to keep the course list below readable.
@@ -84,7 +87,8 @@ typedef S = Sentence;
 const _v = LessonKind.vocab;
 
 /// The course: the four tones, then all 150 words of HSK 1 (the classic
-/// HSK 2.0 level 1 list) in 14 themed units, then some bonus units.
+/// HSK 2.0 level 1 list) in 14 themed units, then HSK 2 and HSK 3
+/// (in hsk2.dart and hsk3.dart).
 /// Every example sentence is original and only uses words taught before it.
 const course = <Unit>[
   Unit('Sounds of Mandarin', 'Pinyin and the four tones', 0xFFE4572E, tag: 'Start here', [
@@ -465,55 +469,39 @@ const course = <Unit>[
     ]),
   ]),
 
-  // ---------------- Bonus (not part of HSK 1) ----------------
-  Unit('Bonus: brothers and sisters', 'Extra family words', 0xFF607D8B, tag: 'Bonus', bonus: true, [
-    Lesson(id: 'bonus-sib', title: 'Siblings', subtitle: '哥哥 · 姐姐 · 弟弟 · 妹妹', kind: _v, words: [
-      W('哥哥', 'gēge', 'older brother'),
-      W('姐姐', 'jiějie', 'older sister'),
-      W('弟弟', 'dìdi', 'younger brother'),
-      W('妹妹', 'mèimei', 'younger sister'),
-    ], sentences: [
-      S(['我', '有', '一', '个', '妹妹'], 'wǒ yǒu yí ge mèimei', 'I have a younger sister.'),
-      S(['我', '没有', '哥哥'], 'wǒ méiyǒu gēge', "I don't have an older brother."),
-    ]),
-  ]),
-  Unit('Bonus: colours', 'Describe what you see', 0xFFB5179E, tag: 'Bonus', bonus: true, [
-    Lesson(id: 'bonus-col-1', title: 'Basic colours', subtitle: '红色 · 蓝色 · 绿色', kind: _v, words: [
-      W('红色', 'hóngsè', 'red', note: '色 means colour, so 红色 is "red colour".'),
-      W('蓝色', 'lánsè', 'blue'),
-      W('绿色', 'lǜsè', 'green'),
-      W('白色', 'báisè', 'white'),
-      W('黑色', 'hēisè', 'black'),
-    ]),
-    Lesson(id: 'bonus-col-2', title: 'Favourite colours', subtitle: '黄色 · 颜色', kind: _v, words: [
-      W('黄色', 'huángsè', 'yellow'),
-      W('颜色', 'yánsè', 'colour'),
-    ], sentences: [
-      S(['我', '喜欢', '红色'], 'wǒ xǐhuan hóngsè', 'I like red.'),
-      S(['你', '喜欢', '什么', '颜色'], 'nǐ xǐhuan shénme yánsè', 'What colour do you like?'),
-      S(['我', '不', '喜欢', '黑色'], 'wǒ bù xǐhuan hēisè', "I don't like black."),
-    ]),
-  ]),
-  Unit('Bonus: café', 'Coffee and treats', 0xFF795548, tag: 'Bonus', bonus: true, [
-    Lesson(id: 'bonus-cafe', title: 'At the café', subtitle: '咖啡 · 好吃', kind: _v, words: [
-      W('咖啡', 'kāfēi', 'coffee'),
-      W('好吃', 'hǎochī', 'tasty'),
-      W('早上好', 'zǎoshang hǎo', 'good morning'),
-    ], sentences: [
-      S(['我', '不', '喝', '咖啡'], 'wǒ bù hē kāfēi', "I don't drink coffee."),
-      S(['米饭', '很', '好吃'], 'mǐfàn hěn hǎochī', 'The rice is very tasty.'),
-    ]),
-  ]),
+  ...hsk2Units,
+  ...hsk3Units,
 ];
 
-/// The HSK 1 words only (no bonus words), for counting.
-List<Word> get hskWords => [
+/// The courses, one per HSK level.
+const levels = [1, 2, 3];
+
+/// The words on the official list of one HSK level (not the extras), for counting.
+List<Word> hskWordsOf(int level) => [
       for (final u in course)
-        if (!u.bonus)
+        if (u.level == level)
           for (final l in u.lessons)
             for (final w in l.words)
               if (w.hsk) w,
     ];
+
+/// The HSK 1 words only, for counting.
+List<Word> get hskWords => hskWordsOf(1);
+
+/// The units of one HSK level, in order.
+List<Unit> unitsOf(int level) => [for (final u in course) if (u.level == level) u];
+
+/// The lessons of one HSK level, in order.
+List<Lesson> lessonsOf(int level) => [for (final u in unitsOf(level)) ...u.lessons];
+
+final Map<String, int> _levelByHanzi = {
+  for (final u in course)
+    for (final l in u.lessons)
+      for (final w in l.words) w.hanzi: u.level,
+};
+
+/// Which HSK course teaches this word (1, 2 or 3), or null if no course does.
+int? levelOfWord(String hanzi) => _levelByHanzi[hanzi];
 
 /// Every lesson in order, used for unlocking the next lesson.
 List<Lesson> get allLessons => [for (final u in course) ...u.lessons];

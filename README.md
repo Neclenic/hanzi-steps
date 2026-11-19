@@ -8,7 +8,22 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **The full HSK 1 course**: all 150 words of HSK 1 (the classic level 1 word list of
   the official Chinese exam) in 14 themed units, after a starter unit on the four tones.
   Every lesson ends with original example sentences that only use words you already know.
-- **Bonus units** (siblings, colours, café words) that aren't on HSK 1 and are open any time.
+- **HSK 2 and HSK 3 courses** in the same lesson style: about 150 new words for HSK 2 and
+  300 for HSK 3, continuing straight on from HSK 1. Switch level with the HSK 1 / 2 / 3 buttons
+  on the home screen. The first lesson of each level is always open.
+- **Daily goal and reminders**: pick 10, 20, 30 or 50 XP a day. The ring at the top of the home
+  screen fills as you earn XP, with bars for the last 7 days. Tap it to change the goal or turn
+  on a daily reminder at the time you choose. If you've already reached the goal, that day's
+  reminder is skipped. (On Windows, the app plans the next week of reminders each time it opens,
+  so open it at least once a week.)
+- **Mini exam**: a 15-minute timed test in the style of the real HSK 1 exam, with a listening
+  part and a reading part (true or false, pick the picture, pick the reply, fill the gap).
+  It is scored out of 200 like the real exam, and 120 is a pass.
+- **Speaking practice**: say a syllable or a word, and the app listens and checks your tones,
+  drawing the pitch of your voice next to the shape it should have. It only checks tones, not
+  the sounds themselves. On a Mac the app asks for the microphone the first time.
+- **Small animations**: lessons bounce, wrong answers shake, the current lesson pulses,
+  numbers count up, and confetti falls when you finish.
 - **Lesson types**: "new word" cards, tone cards with a pitch drawing,
   multiple-choice questions, a tap-to-match game, and sentence building
   (tap word tiles in the right order to make sentences like 我是学生).
@@ -38,9 +53,9 @@ If the app says "no Chinese voice found", add one and restart the app:
 
 ## Stories
 
-The **Stories** card on the home screen opens 10 short original stories: everyday scenes plus
+The **Stories** card on the home screen opens 13 short original stories, grouped by HSK level: everyday scenes plus
 retellings of two classic fables (守株待兔 and 画蛇添足). Each story is labelled with its level,
-worked out automatically from its words ("HSK 1", or "HSK 1+" when it needs a few extra words),
+worked out automatically from its words ("HSK 1", "HSK 2", "HSK 3", with a "+" when it needs a few extra words),
 and shows how many of its words you already know. While reading you can tap any word for its
 pinyin, meaning and sound and add it to your review list, switch pinyin on or off, hear a
 paragraph or the whole story, and show the English. Each story ends with a few questions.
@@ -100,7 +115,11 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 
 | What | File |
 |---|---|
-| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` |
+| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` (HSK 1), `lib/data/hsk2.dart`, `lib/data/hsk3.dart` |
+| Daily goal reminders | `lib/logic/reminders.dart` |
+| Mini exam questions and screen | `lib/data/exam.dart`, `lib/logic/exam.dart`, `lib/screens/exam_screen.dart` |
+| Speaking practice (microphone, pitch, tones) | `lib/logic/recorder.dart`, `lib/logic/pitch.dart`, `lib/screens/speaking_screen.dart` |
+| Small animations | `lib/widgets/anim.dart` |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
 | Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
@@ -121,8 +140,9 @@ each tile must be a word taught in that lesson or earlier (the tests check this)
 
 `flutter test` plays through every lesson automatically and checks that no question
 has duplicate answers, that HSK 1 has exactly 150 words, that every sentence can be built
-from words already taught, and that review works.
+from words already taught, and that review works. It also checks the daily goal, builds and
+plays through mini exams, and checks the tone detector on made-up voice recordings.
 
 ## Not in this version yet
 
-Speaking practice and accounts.
+Accounts and phone versions. Speaking practice checks tones only, not whole pronunciation.

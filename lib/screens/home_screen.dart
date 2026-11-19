@@ -5,12 +5,17 @@ import '../data/stories.dart';
 import '../logic/progress.dart';
 import '../logic/speech.dart';
 import '../logic/exercises.dart';
+import '../logic/settings.dart';
+import 'exam_screen.dart';
+import 'speaking_screen.dart';
 import 'lesson_screen.dart';
 import 'settings_screen.dart';
 import 'stories_screen.dart';
 import 'writing_screen.dart';
+import '../widgets/anim.dart';
 
-/// The main screen: a path of lessons grouped into units.
+/// The main screen: today's goal, practice activities, and a path of lessons
+/// grouped into units, for the chosen HSK level.
 class HomeScreen extends StatelessWidget {
   final Progress progress;
   const HomeScreen({super.key, required this.progress});
@@ -21,90 +26,280 @@ class HomeScreen extends StatelessWidget {
     ));
   }
 
+  void _push(BuildContext context, Widget screen) =>
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final settings = Settings.instance;
     return ListenableBuilder(
-      listenable: progress,
-      builder: (context, _) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Hanzi Steps 汉字', style: TextStyle(fontWeight: FontWeight.bold)),
-          actions: [
-            _Stat(icon: Icons.local_fire_department, color: Colors.orange, value: '${progress.streak}', tip: 'Day streak'),
-            _Stat(icon: Icons.bolt, color: Colors.amber.shade700, value: '${progress.xp}', tip: 'Total XP'),
-            IconButton(
-              icon: const Icon(Icons.draw),
-              tooltip: 'Writing practice',
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => WritingScreen(progress: progress),
-              )),
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Settings',
-              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => SettingsScreen(progress: progress),
-              )),
-            ),
-            const SizedBox(width: 8),
-          ],
-        ),
-        floatingActionButton: _PracticeButton(progress: progress, onStart: (l) => _open(context, l)),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 640),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-              children: [
-                const _NoVoiceBanner(),
-                _CourseCard(progress: progress),
-                Card(
-                  margin: const EdgeInsets.only(top: 4, bottom: 4),
-                  child: ListTile(
-                    leading: const Icon(Icons.menu_book, size: 32),
-                    title: const Text('Stories', style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('${progress.storiesRead.length} of ${stories.length} read · '
-                        'short stories using HSK 1 words'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) => StoriesScreen(progress: progress),
-                    )),
+      listenable: Listenable.merge([progress, settings]),
+      builder: (context, _) {
+        final level = settings.level;
+        // The next lesson to do in this course gets a pulsing ring and a "START" bubble.
+        final current = lessonsOf(level).where((l) => progress.isUnlocked(l) && !progress.isDone(l)).firstOrNull;
+        final units = unitsOf(level);
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Hanzi Steps 汉字', style: TextStyle(fontWeight: FontWeight.bold)),
+            actions: [
+              _Stat(icon: Icons.local_fire_department, color: Colors.orange, value: progress.streak, tip: 'Day streak'),
+              _Stat(icon: Icons.bolt, color: Colors.amber.shade700, value: progress.xp, tip: 'Total XP'),
+              IconButton(
+                icon: const Icon(Icons.draw),
+                tooltip: 'Writing practice',
+                onPressed: () => _push(context, WritingScreen(progress: progress)),
+              ),
+              IconButton(
+                icon: const Icon(Icons.settings),
+                tooltip: 'Settings',
+                onPressed: () => _push(context, SettingsScreen(progress: progress)),
+              ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          floatingActionButton: _PracticeButton(progress: progress, onStart: (l) => _open(context, l)),
+          body: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                children: [
+                  const _NoVoiceBanner(),
+                  FadeSlideIn(child: _GoalCard(progress: progress)),
+                  const SizedBox(height: 4),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 80),
+                    child: Row(children: [
+                      Expanded(
+                        child: _ActivityTile(
+                          icon: Icons.menu_book,
+                          color: const Color(0xFF2E86AB),
+                          title: 'Stories',
+                          subtitle: '${progress.storiesRead.length} of ${stories.length} read',
+                          onTap: () => _push(context, StoriesScreen(progress: progress)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _ActivityTile(
+                          icon: Icons.mic,
+                          color: const Color(0xFF3BB273),
+                          title: 'Speaking',
+                          subtitle: 'Say it, check your tones',
+                          onTap: () => _push(context, SpeakingScreen(progress: progress)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _ActivityTile(
+                          icon: Icons.timer_outlined,
+                          color: const Color(0xFFD7263D),
+                          title: 'Mini exam',
+                          subtitle: progress.bestExam == null ? 'HSK 1 style test' : 'Best: ${progress.bestExam} / 200',
+                          onTap: () => _push(context, ExamIntroScreen(progress: progress)),
+                        ),
+                      ),
+                    ]),
                   ),
-                ),
-                for (final unit in course) ...[
-                  if (unit.bonus && unit == course.firstWhere((u) => u.bonus))
-                    Padding(
-                      padding: const EdgeInsets.only(top: 24, bottom: 4),
-                      child: Text('Bonus units: extra words outside HSK 1. Open any time.',
-                          textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
-                    ),
-                  _UnitHeader(unit: unit),
-                  for (final (i, lesson) in unit.lessons.indexed)
-                    _LessonNode(
-                      lesson: lesson,
-                      color: Color(unit.colorValue),
-                      offset: i.isEven ? -60 : 60,
-                      done: progress.isDone(lesson),
-                      unlocked: progress.isUnlocked(lesson),
-                      onTap: () => _open(context, lesson),
-                    ),
                   const SizedBox(height: 16),
+                  Center(
+                    child: SegmentedButton<int>(
+                      segments: [for (final l in levels) ButtonSegment(value: l, label: Text('HSK $l'))],
+                      selected: {level},
+                      onSelectionChanged: (v) => settings.level = v.first,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  KeyedSubtree(
+                    key: ValueKey(level),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                      FadeSlideIn(child: _CourseCard(progress: progress, level: level)),
+                      if (level > 1 && !lessonsOf(level - 1).every(progress.isDone))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Tip: HSK $level builds on HSK ${level - 1}. You can start here any time, '
+                            'but finishing HSK ${level - 1} first makes it easier.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: scheme.onSurfaceVariant),
+                          ),
+                        ),
+                      for (final unit in units) ...[
+                        FadeSlideIn(child: _UnitHeader(unit: unit)),
+                        for (final (i, lesson) in unit.lessons.indexed)
+                          FadeSlideIn(
+                            delay: Duration(milliseconds: 60 * i),
+                            child: _LessonNode(
+                              lesson: lesson,
+                              color: Color(unit.colorValue),
+                              offset: i.isEven ? -60 : 60,
+                              done: progress.isDone(lesson),
+                              unlocked: progress.isUnlocked(lesson),
+                              current: lesson == current,
+                              onTap: () => _open(context, lesson),
+                            ),
+                          ),
+                        const SizedBox(height: 16),
+                      ],
+                      Text(
+                        level < levels.last
+                            ? 'Next: HSK ${level + 1}. Pick it at the top of the path.'
+                            : 'You have reached the end of HSK 3. 太棒了!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: scheme.onSurfaceVariant),
+                      ),
+                    ]),
+                  ),
                 ],
-                Text('More courses coming later.',
-                    textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
-              ],
+              ),
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+/// Today's XP towards the daily goal, as a ring, plus the last 7 days as bars.
+class _GoalCard extends StatelessWidget {
+  final Progress progress;
+  const _GoalCard({required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final goal = progress.dailyGoal, today = progress.xpToday;
+    final met = today >= goal;
+    final week = progress.lastWeekXp;
+    final most = [goal, ...week].reduce((a, b) => a > b ? a : b);
+    const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final now = DateTime.now();
+    final color = met ? const Color(0xFF2E9E5B) : Colors.amber.shade700;
+    return Card(
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showModalBottomSheet<void>(
+          context: context,
+          builder: (c) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text('Daily goal', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                GoalPicker(progress: progress),
+                ReminderSettings(progress: progress),
+              ]),
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(children: [
+            AnimatedRing(
+              value: goal == 0 ? 1 : today / goal,
+              color: color,
+              size: 72,
+              stroke: 8,
+              child: met
+                  ? const PopIn(child: Icon(Icons.check_rounded, size: 34, color: Color(0xFF2E9E5B)))
+                  : Column(mainAxisSize: MainAxisSize.min, children: [
+                      AnimatedCount(value: today, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text('/ $goal', style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+                    ]),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(met ? 'Daily goal reached! 🎉' : 'Daily goal: $goal XP',
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text(
+                  met
+                      ? 'Come back tomorrow to keep your streak.'
+                      : '${goal - today} XP to go today${Settings.instance.reminderOn ? '' : ' · tap to set a reminder'}',
+                  style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+                ),
+              ]),
+            ),
+            const SizedBox(width: 8),
+            // The last 7 days, today on the right.
+            SizedBox(
+              height: 56,
+              child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                for (var i = 0; i < 7; i++)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.end, children: [
+                      TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: most == 0 ? 0 : week[i] / most),
+                        duration: Duration(milliseconds: 500 + 60 * i),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, v, _) => Container(
+                          width: 10,
+                          height: 4 + 34 * v,
+                          decoration: BoxDecoration(
+                            color: week[i] >= goal ? const Color(0xFF2E9E5B) : (week[i] > 0 ? Colors.amber.shade600 : scheme.surfaceContainerHighest),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(days[now.subtract(Duration(days: 6 - i)).weekday - 1],
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: i == 6 ? scheme.primary : scheme.onSurfaceVariant,
+                              fontWeight: i == 6 ? FontWeight.bold : null)),
+                    ]),
+                  ),
+              ]),
+            ),
+          ]),
         ),
       ),
     );
   }
 }
 
+/// A small card on the home screen that opens a practice activity.
+class _ActivityTile extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  const _ActivityTile({required this.icon, required this.color, required this.title, required this.subtitle, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => PressBounce(
+        child: Card(
+          margin: EdgeInsets.zero,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                CircleAvatar(radius: 18, backgroundColor: color, child: Icon(icon, color: Colors.white, size: 20)),
+                const SizedBox(height: 8),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              ]),
+            ),
+          ),
+        ),
+      );
+}
+
 class _Stat extends StatelessWidget {
   final IconData icon;
   final Color color;
-  final String value;
+  final int value;
   final String tip;
   const _Stat({required this.icon, required this.color, required this.value, required this.tip});
 
@@ -116,7 +311,7 @@ class _Stat extends StatelessWidget {
           child: Row(children: [
             Icon(icon, color: color),
             const SizedBox(width: 4),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            AnimatedCount(value: value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ]),
         ),
       );
@@ -148,6 +343,7 @@ class _LessonNode extends StatelessWidget {
   final double offset;
   final bool done;
   final bool unlocked;
+  final bool current;
   final VoidCallback onTap;
   const _LessonNode({
     required this.lesson,
@@ -156,6 +352,7 @@ class _LessonNode extends StatelessWidget {
     required this.done,
     required this.unlocked,
     required this.onTap,
+    this.current = false,
   });
 
   @override
@@ -163,29 +360,47 @@ class _LessonNode extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final fill = unlocked ? color : scheme.surfaceContainerHighest;
     final icon = done ? Icons.check : (unlocked ? Icons.star : Icons.lock);
+    Widget button = Tooltip(
+      message: unlocked ? 'Start "${lesson.title}"' : 'Finish the lesson before this one to unlock',
+      child: PressBounce(
+        enabled: unlocked,
+        child: Material(
+          color: fill,
+          shape: CircleBorder(side: done ? BorderSide(color: Colors.amber.shade600, width: 4) : BorderSide.none),
+          elevation: unlocked ? 4 : 0,
+          shadowColor: color,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: unlocked ? onTap : null,
+            child: SizedBox(
+              width: 76,
+              height: 76,
+              child: Icon(icon, size: 36, color: unlocked ? Colors.white : scheme.outline),
+            ),
+          ),
+        ),
+      ),
+    );
+    if (current) button = PulseRing(color: color, size: 76, child: button);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: EdgeInsets.symmetric(vertical: current ? 0 : 10),
       child: Transform.translate(
         offset: Offset(offset, 0),
         child: Column(children: [
-          Tooltip(
-            message: unlocked ? 'Start "${lesson.title}"' : 'Finish the lesson before this one to unlock',
-            child: Material(
-              color: fill,
-              shape: const CircleBorder(),
-              elevation: unlocked ? 4 : 0,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: unlocked ? onTap : null,
-                child: SizedBox(
-                  width: 76,
-                  height: 76,
-                  child: Icon(icon, size: 36, color: unlocked ? Colors.white : scheme.outline),
+          if (current)
+            Bob(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: scheme.surface,
+                  border: Border.all(color: color, width: 2),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Text('START', style: TextStyle(color: color, fontWeight: FontWeight.bold, letterSpacing: 1)),
               ),
             ),
-          ),
-          const SizedBox(height: 6),
+          button,
+          SizedBox(height: current ? 0 : 6),
           Text(lesson.title, style: TextStyle(fontWeight: FontWeight.w600, color: unlocked ? null : scheme.outline)),
           Text(lesson.subtitle, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
         ]),
@@ -252,12 +467,13 @@ class _PracticeButton extends StatelessWidget {
 /// Shows how far along HSK 1 you are and how well the words are sticking.
 class _CourseCard extends StatelessWidget {
   final Progress progress;
-  const _CourseCard({required this.progress});
+  final int level;
+  const _CourseCard({required this.progress, required this.level});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final hsk = hskWords.map((w) => w.hanzi).toSet();
+    final hsk = hskWordsOf(level).map((w) => w.hanzi).toSet();
     final learned = progress.learnedWords.where((w) => hsk.contains(w.hanzi)).map((w) => w.hanzi).toSet().length;
     final total = hsk.length;
     final boxes = progress.boxCounts;
@@ -269,19 +485,12 @@ class _CourseCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
-            const Text('HSK 1', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('HSK $level', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             Text('$learned / $total words learned', style: TextStyle(color: scheme.onSurfaceVariant)),
           ]),
           const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: LinearProgressIndicator(
-              value: total == 0 ? 0 : learned / total,
-              minHeight: 10,
-              backgroundColor: scheme.surfaceContainerHighest,
-            ),
-          ),
+          AnimatedBar(value: total == 0 ? 0 : learned / total),
           const SizedBox(height: 8),
           Text(
             learned == 0
