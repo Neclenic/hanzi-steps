@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -155,9 +156,12 @@ class Progress extends ChangeNotifier {
   int get xpToday => _days[_key(_today())] ?? 0;
 
   /// XP earned on each of the last 7 days, oldest first (today is last).
-  List<int> get lastWeekXp {
+  List<int> get lastWeekXp => lastDaysXp(7);
+
+  /// XP earned on each of the last [n] days (up to 30), oldest first.
+  List<int> lastDaysXp(int n) {
     final d = _days, t = _today();
-    return [for (var i = 6; i >= 0; i--) d[_key(t.subtract(Duration(days: i)))] ?? 0];
+    return [for (var i = n - 1; i >= 0; i--) d[_key(t.subtract(Duration(days: i)))] ?? 0];
   }
 
   /// How much XP a day the learner is aiming for.
@@ -185,7 +189,10 @@ class Progress extends ChangeNotifier {
     }
     await _prefs.setString('xpDays', jsonEncode(d));
     await _bumpStreak();
-    if (!wasMet && goalMetToday) onGoalChanged?.call();
+    if (!wasMet && goalMetToday) {
+      await _prefs.setInt('goalDays', goalDays + 1);
+      onGoalChanged?.call();
+    }
   }
 
   /// XP from practice outside lessons (speaking practice, the exam).
@@ -196,16 +203,122 @@ class Progress extends ChangeNotifier {
 
   // ---- Mini exam ----
 
-  /// Best mini exam score out of 200, or null if never taken.
-  int? get bestExam => _prefs.getInt('examBest');
+  static String _examKey(int level) => level == 1 ? 'examBest' : 'examBest$level';
+
+  /// Best HSK 1 mini exam score out of 200, or null if never taken.
+  int? get bestExam => bestExamFor(1);
+
+  /// Best mini exam score for one HSK level, or null if never taken.
+  int? bestExamFor(int level) => _prefs.getInt(_examKey(level));
   int get examsTaken => _prefs.getInt('examsTaken') ?? 0;
 
-  Future<void> finishExam(int score, int earnedXp) async {
-    if (score > (bestExam ?? -1)) await _prefs.setInt('examBest', score);
+  /// Levels whose mini exam has been passed.
+  Set<int> get examsPassed => (_prefs.getStringList('examsPassed') ?? const []).map(int.parse).toSet();
+
+  /// Did any mini exam get full marks?
+  bool get examFullMarks => _prefs.getBool('examFullMarks') ?? false;
+
+  Future<void> finishExam(int score, int earnedXp, {int level = 1, bool passed = false, bool fullMarks = false}) async {
+    if (score > (bestExamFor(level) ?? -1)) await _prefs.setInt(_examKey(level), score);
     await _prefs.setInt('examsTaken', examsTaken + 1);
+    if (passed) await _prefs.setStringList('examsPassed', {...examsPassed, level}.map((e) => '$e').toList());
+    if (fullMarks) await _prefs.setBool('examFullMarks', true);
     await _addXp(earnedXp);
     notifyListeners();
   }
+
+  // ---- Counters and practice results (for stats and badges) ----
+
+  Map<String, dynamic> _json(String key) {
+    try {
+      return (jsonDecode(_prefs.getString(key) ?? '{}') as Map).cast<String, dynamic>();
+    } catch (_) {
+      return {};
+    }
+  }
+
+  /// How many times something has happened, e.g. 'speakRight' or 'typedRight'.
+  int count(String name) => (_json('counters')[name] as num?)?.toInt() ?? 0;
+
+  Future<void> bump(String name, [int n = 1]) async {
+    final c = _json('counters');
+    c[name] = ((c[name] as num?) ?? 0) + n;
+    await _prefs.setString('counters', jsonEncode(c));
+    notifyListeners();
+  }
+
+  Map<String, (int, int)> _rightTotal(String key) => _json(key).map((k, v) {
+        final l = (v as List).cast<num>();
+        return MapEntry(k, (l[0].toInt(), l[1].toInt()));
+      });
+
+  Future<void> _addRightTotal(String key, String item, bool right) async {
+    final m = _json(key);
+    final l = ((m[item] as List?) ?? [0, 0]).cast<num>();
+    m[item] = [l[0] + (right ? 1 : 0), l[1] + 1];
+    await _prefs.setString(key, jsonEncode(m));
+  }
+
+  /// Right and total answers for each tone, as {1: (right, total)}.
+  Map<int, (int, int)> get toneStats => _rightTotal('toneStats').map((k, v) => MapEntry(int.parse(k), v));
+
+  /// Remembers whether a tone (1–4) was heard or said right.
+  Future<void> recordTone(int tone, bool right) async {
+    if (tone < 1 || tone > 4) return;
+    await _addRightTotal('toneStats', '$tone', right);
+    notifyListeners();
+  }
+
+  /// Right and total answers for each tone pair, as {"3-4": (right, total)}.
+  Map<String, (int, int)> get pairStats => _rightTotal('pairStats');
+
+  Future<void> recordPair(String pair, bool right) async {
+    await _addRightTotal('pairStats', pair, right);
+    notifyListeners();
+  }
+
+  /// The words answered wrong most often, trickiest first.
+  List<(Word, int)> get troubleWords {
+    final t = _trouble;
+    final out = <(Word, int)>[
+      for (final e in t.entries)
+        if (wordFor(e.key) case final w?) (w, e.value),
+    ]..sort((a, b) => b.$2.compareTo(a.$2));
+    return out;
+  }
+
+  /// Every word learned so far (finished lessons and words added from stories), each once.
+  int get wordsLearned => {...learnedWords.map((w) => w.hanzi), ..._review.keys}.length;
+
+  // ---- Dialogues and games ----
+  Set<String> get dialoguesDone => (_prefs.getStringList('dialoguesDone') ?? const []).toSet();
+
+  Future<void> finishDialogue(String id, int earnedXp) async {
+    await _prefs.setStringList('dialoguesDone', {...dialoguesDone, id}.toList());
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
+
+  int gameBest(String game) => _prefs.getInt('gameBest_$game') ?? 0;
+
+  /// Saves a game score and returns true if it's a new best.
+  Future<bool> finishGame(String game, int score, int earnedXp) async {
+    final best = score > gameBest(game);
+    if (best) await _prefs.setInt('gameBest_$game', score);
+    await _addXp(earnedXp);
+    notifyListeners();
+    return best;
+  }
+
+  // ---- Badges ----
+  Set<String> get badgesSeen => (_prefs.getStringList('badgesSeen') ?? const []).toSet();
+  Future<void> setBadgesSeen(Set<String> ids) => _prefs.setStringList('badgesSeen', ids.toList());
+
+  /// The longest streak so far.
+  int get bestStreak => max(_prefs.getInt('bestStreak') ?? 0, streak);
+
+  /// On how many days the daily goal was reached.
+  int get goalDays => _prefs.getInt('goalDays') ?? 0;
 
   /// Counts today towards the daily streak.
   Future<void> _bumpStreak() async {
@@ -213,8 +326,10 @@ class Progress extends ChangeNotifier {
     final last = _prefs.getString('lastDay');
     final gap = last == null ? null : today.difference(DateTime.parse(last)).inDays;
     if (gap != 0) {
-      await _prefs.setInt('streak', gap == 1 ? streak + 1 : 1);
+      final next = gap == 1 ? streak + 1 : 1;
+      await _prefs.setInt('streak', next);
       await _prefs.setString('lastDay', today.toIso8601String());
+      if (next > (_prefs.getInt('bestStreak') ?? 0)) await _prefs.setInt('bestStreak', next);
     }
   }
 
@@ -240,7 +355,9 @@ class Progress extends ChangeNotifier {
   }
 
   Future<void> reset() async {
-    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examsTaken']) {
+    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examBest2', 'examBest3', 'examsTaken', 'examsPassed', 'examFullMarks',
+      'counters', 'toneStats', 'pairStats', 'dialoguesDone', 'badgesSeen', 'bestStreak', 'goalDays',
+      'gameBest_match', 'gameBest_fall']) {
       await _prefs.remove(k);
     }
     notifyListeners();

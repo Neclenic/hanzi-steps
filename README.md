@@ -16,12 +16,30 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   on a daily reminder at the time you choose. If you've already reached the goal, that day's
   reminder is skipped. (On Windows, the app plans the next week of reminders each time it opens,
   so open it at least once a week.)
-- **Mini exam**: a 15-minute timed test in the style of the real HSK 1 exam, with a listening
-  part and a reading part (true or false, pick the picture, pick the reply, fill the gap).
-  It is scored out of 200 like the real exam, and 120 is a pass.
+- **Mini exams for HSK 1, 2 and 3**: timed tests in the style of the real HSK exams, with a
+  listening part and a reading part (true or false, pick the picture, pick the reply, fill the gap).
+  HSK 1 and 2 are scored out of 200 (120 is a pass). HSK 3 adds a writing part where you pick the
+  missing character, and is scored out of 300 (180 is a pass). The Mini exam card opens the exam
+  for the level you have selected.
 - **Speaking practice**: say a syllable or a word, and the app listens and checks your tones,
   drawing the pitch of your voice next to the shape it should have. It only checks tones, not
   the sounds themselves. On a Mac the app asks for the microphone the first time.
+- **Tone pairs**: practise the 20 two-syllable tone combinations (like mā-má or nǐ-hǎo). A grid
+  shows how often you get each pair right; tap a pair for example words. The tone quiz plays a word
+  and you pick its pair (pairs you miss come up more often), and "Say them" lets you speak them.
+- **Character stories**: new-word cards and the writing page show how a character is built
+  from parts, with a memory hint, e.g. 口 mouth + 马 horse = 吗.
+- **Grammar tips**: 33 short cards inside lessons (吗, 的, 了, measure words and more), each with
+  examples that only use words you know. The Grammar card on the home screen lists them all.
+- **Dialogues**: 9 short conversations (a café, buying fruit, asking the way, at the doctor…).
+  Listen to the other person, pick your reply from three, then say it aloud if you like.
+- **Type pinyin**: hear a word and type it in pinyin. Type tones as numbers (ni3hao3) and they
+  turn into marks as you type (nǐhǎo). Light tones can be left out.
+- **Badges**: 26 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
+  tone pairs and words you miss most (with a button to practise those words), and your badges.
+- **Quick games**: Speed match (match characters and meanings against the clock) and Falling
+  characters (catch the one that matches the meaning before it reaches the bottom; 3 lives).
 - **Small animations**: lessons bounce, wrong answers shake, the current lesson pulses,
   numbers count up, and confetti falls when you finish.
 - **Lesson types**: "new word" cards, tone cards with a pitch drawing,
@@ -120,6 +138,15 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Mini exam questions and screen | `lib/data/exam.dart`, `lib/logic/exam.dart`, `lib/screens/exam_screen.dart` |
 | Speaking practice (microphone, pitch, tones) | `lib/logic/recorder.dart`, `lib/logic/pitch.dart`, `lib/screens/speaking_screen.dart` |
 | Small animations | `lib/widgets/anim.dart` |
+| Tone pairs | `lib/logic/tone_pairs.dart`, `lib/screens/tone_pairs_screen.dart` |
+| Character stories | `lib/data/char_stories.dart`, `lib/widgets/char_story_card.dart` |
+| Grammar tips | `lib/data/grammar.dart`, `lib/screens/grammar_screen.dart` |
+| Dialogues | `lib/data/dialogues.dart`, `lib/screens/dialogue_screen.dart` |
+| Typing pinyin | `lib/logic/pinyin_input.dart`, `lib/screens/typing_screen.dart` |
+| Badges | `lib/logic/badges.dart`, `lib/widgets/badge_watcher.dart` |
+| Stats page | `lib/screens/stats_screen.dart` |
+| Quick games | `lib/screens/games_screen.dart` |
+| Shared quiz pieces (answer tiles, bottom bar, results) | `lib/widgets/quiz_parts.dart` |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
 | Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
@@ -141,7 +168,9 @@ each tile must be a word taught in that lesson or earlier (the tests check this)
 `flutter test` plays through every lesson automatically and checks that no question
 has duplicate answers, that HSK 1 has exactly 150 words, that every sentence can be built
 from words already taught, and that review works. It also checks the daily goal, builds and
-plays through mini exams, and checks the tone detector on made-up voice recordings.
+plays through mini exams for all three levels, and checks the tone detector on made-up voice
+recordings. It also checks that grammar examples and dialogues only use words already taught,
+that typed pinyin is marked right or wrong correctly, and plays through each game.
 
 ## Not in this version yet
 

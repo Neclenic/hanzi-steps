@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../data/char_stories.dart';
 import '../data/course.dart';
 import '../logic/progress.dart';
 import '../logic/speech.dart';
 import '../logic/strokes.dart';
+import '../widgets/char_story_card.dart';
 import '../widgets/character_writer.dart';
 
 /// Practise writing any character from the lessons you have finished.
@@ -131,6 +133,10 @@ class _WritingScreenState extends State<WritingScreen> {
               label: const Text('Next'),
             ),
           ]),
+          if (storyOf(c) case final story?) ...[
+            const SizedBox(height: 12),
+            SizedBox(width: 380, child: CharStoryCard(story)),
+          ],
         ]),
       ),
     );

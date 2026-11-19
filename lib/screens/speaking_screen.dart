@@ -75,7 +75,12 @@ SpeakCheck checkRecording(List<double> samples, String pinyin, {double? ref}) {
 /// Speaking practice: say a word, and the app checks your tones.
 class SpeakingScreen extends StatefulWidget {
   final Progress progress;
-  const SpeakingScreen({super.key, required this.progress});
+
+  /// A fixed list to practise (for example the words of one tone pair). When it is
+  /// set, the "Tones / My words" switch is hidden.
+  final List<SpeakItem>? items;
+  final String title;
+  const SpeakingScreen({super.key, required this.progress, this.items, this.title = 'Speaking practice'});
 
   @override
   State<SpeakingScreen> createState() => _SpeakingScreenState();
@@ -85,7 +90,7 @@ class _SpeakingScreenState extends State<SpeakingScreen> {
   final _rec = VoiceRecorder();
   final _random = Random();
   bool _words = false; // false: single syllables (tones), true: words from your lessons
-  late List<SpeakItem> _items = _tonesList();
+  late List<SpeakItem> _items = widget.items ?? _tonesList();
   int _i = 0;
   bool _recording = false;
   bool _busy = false;
@@ -189,8 +194,13 @@ class _SpeakingScreenState extends State<SpeakingScreen> {
       _busy = false;
       _check = check;
     });
+    // Remember how each tone went, for the stats page.
+    for (var i = 0; i < check.heard.length; i++) {
+      if (check.heard[i] != null) await widget.progress.recordTone(check.expected[i], check.syllableOk(i));
+    }
     if (check.ok) {
       _rightInARow++;
+      await widget.progress.bump('speakRight');
       await widget.progress.addXp(2);
     } else {
       _rightInARow = 0;
@@ -223,12 +233,12 @@ class _SpeakingScreenState extends State<SpeakingScreen> {
       autofocus: true,
       onKeyEvent: _onKey,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Speaking practice')),
+        appBar: AppBar(title: Text(widget.title)),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 640),
             child: ListView(padding: const EdgeInsets.all(20), children: [
-              Center(
+              if (widget.items == null) Center(
                 child: SegmentedButton<bool>(
                   segments: const [
                     ButtonSegment(value: false, label: Text('Tones'), icon: Icon(Icons.show_chart)),
@@ -516,4 +526,105 @@ class _PitchPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _PitchPainter old) => old.t != t || old.check != check;
+}
+
+/// A small "Say it" microphone for practising one line, e.g. in a dialogue.
+/// Records, checks the tones, and shows a one-line result.
+class SayItButton extends StatefulWidget {
+  final String pinyin;
+  final Progress progress;
+  const SayItButton({super.key, required this.pinyin, required this.progress});
+
+  @override
+  State<SayItButton> createState() => _SayItButtonState();
+}
+
+class _SayItButtonState extends State<SayItButton> {
+  final _rec = VoiceRecorder();
+  bool _recording = false;
+  bool _busy = false;
+  String? _message;
+  bool _ok = false;
+  Timer? _autoStop;
+
+  @override
+  void dispose() {
+    _autoStop?.cancel();
+    _rec.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggle() async {
+    if (_busy) return;
+    if (_recording) return _stop();
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    final ok = await _rec.start();
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _recording = ok;
+      if (!ok) _message = 'No microphone, or it is blocked.';
+    });
+    if (ok) {
+      final syllables = max(1, tonesOf(widget.pinyin).length);
+      _autoStop = Timer(Duration(milliseconds: 1400 + 450 * syllables), _stop);
+    }
+  }
+
+  Future<void> _stop() async {
+    _autoStop?.cancel();
+    if (!_recording) return;
+    setState(() {
+      _recording = false;
+      _busy = true;
+    });
+    final samples = await _rec.stop();
+    final prefs = await SharedPreferences.getInstance();
+    final check = checkRecording(samples, widget.pinyin, ref: prefs.getDouble('voicePitch'));
+    var checked = 0, right = 0;
+    for (var i = 0; i < check.heard.length; i++) {
+      if (check.heard[i] == null) continue;
+      checked++;
+      if (check.syllableOk(i)) right++;
+      await widget.progress.recordTone(check.expected[i], check.syllableOk(i));
+    }
+    if (check.ok) await widget.progress.bump('speakRight');
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _ok = check.ok;
+      _message = check.problem ?? (check.ok ? 'Great tones! $right of $checked right.' : 'Tones: $right of $checked right. Listen and try again.');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(children: [
+        ValueListenableBuilder<double>(
+          valueListenable: _rec.level,
+          builder: (context, lvl, child) =>
+              AnimatedScale(scale: 1 + (_recording ? lvl * 0.3 : 0), duration: const Duration(milliseconds: 90), child: child),
+          child: IconButton.filled(
+            onPressed: _busy ? null : _toggle,
+            style: IconButton.styleFrom(backgroundColor: _recording ? _red : const Color(0xFF3BB273)),
+            icon: Icon(_recording ? Icons.stop_rounded : Icons.mic),
+            tooltip: _recording ? 'Stop' : 'Say it yourself',
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            _recording ? 'Listening… say it now' : _busy ? 'Checking…' : _message ?? 'Say it yourself (checks your tones)',
+            style: TextStyle(color: _message != null && _ok ? _green : scheme.onSurfaceVariant),
+          ),
+        ),
+      ]),
+    );
+  }
 }

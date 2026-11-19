@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../data/char_stories.dart';
 import '../data/course.dart';
+import '../data/grammar.dart';
 import '../logic/exercises.dart';
 import '../logic/progress.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
 import '../widgets/anim.dart';
+import '../widgets/char_story_card.dart';
 import '../widgets/character_writer.dart';
 import '../widgets/tone_shape.dart';
 
@@ -54,6 +57,7 @@ class _LessonScreenState extends State<LessonScreen> {
   String? get _stepAudio => switch (_step) {
         TeachWordStep s => s.word.hanzi,
         TeachToneStep s => s.example.hanzi,
+        GrammarStep() => null,
         ChoiceStep s => s.speak,
         // Don't give the sentence away before it's built.
         SentenceStep s => _checked ? s.sentence.hanzi : null,
@@ -78,7 +82,7 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   bool get _canPress => switch (_step) {
-        TeachWordStep() || TeachToneStep() => true,
+        TeachWordStep() || TeachToneStep() || GrammarStep() => true,
         ChoiceStep() => _selected != null,
         SentenceStep() => _built.isNotEmpty,
         WriteStep() => true, // can always skip writing
@@ -113,6 +117,8 @@ class _LessonScreenState extends State<LessonScreen> {
         widget.progress.recordAnswer(step.wordKey!, right);
         _wordResults[step.wordKey!] = (_wordResults[step.wordKey!] ?? true) && right;
       }
+      // Remember how each tone went, for the stats page.
+      if (step is ChoiceStep && step.tone != null) widget.progress.recordTone(step.tone!, right);
       return;
     }
     _next();
@@ -282,6 +288,7 @@ class _LessonScreenState extends State<LessonScreen> {
   Widget _stepView(LessonStep step) => switch (step) {
         TeachWordStep s => _TeachWord(word: s.word),
         TeachToneStep s => _TeachTone(step: s),
+        GrammarStep s => GrammarCard(tip: s.tip),
         ChoiceStep s => _ChoiceView(step: s, selected: _selected, checked: _checked, onSelect: _select),
         SentenceStep s => _SentenceView(
             step: s, built: _built, checked: _checked, onAdd: _addTile, onRemove: _removeTile),
@@ -468,6 +475,10 @@ class _TeachWord extends StatelessWidget {
             ]),
           ),
         ),
+      ],
+      for (final story in storiesFor(word.hanzi).take(2)) ...[
+        const SizedBox(height: 12),
+        CharStoryCard(story),
       ],
     ]);
   }
@@ -862,6 +873,52 @@ class _WriteView extends StatelessWidget {
           style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
       const SizedBox(height: 12),
       CharacterWriter(char: step.char, size: 280, onComplete: (_) => onDone()),
+    ]);
+  }
+}
+
+// ---------- Grammar ----------
+
+/// A grammar tip: the pattern, a short explanation and examples you can hear.
+class GrammarCard extends StatelessWidget {
+  final GrammarTip tip;
+  const GrammarCard({super.key, required this.tip});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Center(child: _NewBadge('GRAMMAR TIP')),
+      const SizedBox(height: 20),
+      Text(tip.title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 12),
+      Center(
+        child: PopIn(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
+            child: Text(tip.pattern, style: TextStyle(fontSize: 22, color: scheme.onPrimaryContainer)),
+          ),
+        ),
+      ),
+      const SizedBox(height: 16),
+      Text(tip.explain, style: const TextStyle(fontSize: 17)),
+      const SizedBox(height: 12),
+      for (final (i, e) in tip.examples.indexed)
+        FadeSlideIn(
+          delay: Duration(milliseconds: 120 * (i + 1)),
+          child: Card(
+            child: ListTile(
+              title: Text(e.hanzi, style: const TextStyle(fontSize: 24)),
+              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                if (Settings.instance.showPinyin)
+                  Text(e.pinyin, style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600)),
+                Text(e.en),
+              ]),
+              trailing: SpeakButton(e.hanzi),
+            ),
+          ),
+        ),
     ]);
   }
 }

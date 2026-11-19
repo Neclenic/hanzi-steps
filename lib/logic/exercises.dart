@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../data/course.dart';
+import '../data/grammar.dart';
 
 /// One screen inside a lesson.
 sealed class LessonStep {
@@ -11,6 +12,12 @@ sealed class LessonStep {
 class TeachWordStep extends LessonStep {
   final Word word;
   const TeachWordStep(this.word);
+}
+
+/// A short grammar tip card.
+class GrammarStep extends LessonStep {
+  final GrammarTip tip;
+  const GrammarStep(this.tip);
 }
 
 /// Teaches one of the four tones.
@@ -42,6 +49,7 @@ class ChoiceStep extends LessonStep {
   final bool listening; // true: the prompt is only heard, not shown
   final String? wordKey; // the word being tested, for the review list
   final bool promptSubIsPinyin; // hide [promptSub] when the learner turns pinyin off
+  final int? tone; // the tone being tested (1–4), for the stats page
   const ChoiceStep({
     required this.instruction,
     this.prompt,
@@ -53,6 +61,7 @@ class ChoiceStep extends LessonStep {
     this.listening = false,
     this.wordKey,
     this.promptSubIsPinyin = false,
+    this.tone,
   });
 }
 
@@ -133,6 +142,7 @@ ChoiceStep _whichTone(ToneSyllable s, Random rnd) => ChoiceStep(
       promptSub: s.hanzi == null ? null : '${s.hanzi} · ${s.meaning}',
       options: [for (final t in tones) ChoiceOption(t.name, sub: t.mark, tone: t.number)],
       correct: s.tone - 1,
+      tone: s.tone,
       speak: s.hanzi,
       explain: '${s.marked} has the ${_toneName(s.tone).toLowerCase()}: ${tones[s.tone - 1].howTo}',
     );
@@ -174,6 +184,7 @@ List<LessonStep> _toneLesson(Lesson lesson, Random rnd, bool withAudio) {
         speak: s.hanzi,
         options: [for (final t in tones) ChoiceOption(t.name, sub: t.mark, tone: t.number)],
         correct: s.tone - 1,
+        tone: s.tone,
         explain: 'That was ${s.hanzi} ${s.marked} (${s.meaning}), ${_toneName(s.tone).toLowerCase()}.',
       ));
     }
@@ -248,6 +259,8 @@ List<LessonStep> _vocabLesson(Lesson lesson, Random rnd, bool withAudio) {
     steps.add(TeachWordStep(w));
     steps.add(_meaningOf(w, lesson, rnd));
   }
+  // A grammar tip, if this lesson has one.
+  if (grammarFor(lesson.id) case final tip?) steps.add(GrammarStep(tip));
   // 2. Mixed practice in a random order.
   final practice = <LessonStep>[
     for (final w in lesson.words) _hanziFor(w, lesson, rnd),

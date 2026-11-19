@@ -6,7 +6,17 @@ import '../logic/progress.dart';
 import '../logic/speech.dart';
 import '../logic/exercises.dart';
 import '../logic/settings.dart';
+import '../data/dialogues.dart';
+import '../data/grammar.dart';
+import '../logic/badges.dart';
+import '../logic/exam.dart';
+import 'dialogue_screen.dart';
 import 'exam_screen.dart';
+import 'games_screen.dart';
+import 'grammar_screen.dart';
+import 'stats_screen.dart';
+import 'tone_pairs_screen.dart';
+import 'typing_screen.dart';
 import 'speaking_screen.dart';
 import 'lesson_screen.dart';
 import 'settings_screen.dart';
@@ -71,35 +81,71 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 80),
-                    child: Row(children: [
-                      Expanded(
-                        child: _ActivityTile(
-                          icon: Icons.menu_book,
-                          color: const Color(0xFF2E86AB),
-                          title: 'Stories',
-                          subtitle: '${progress.storiesRead.length} of ${stories.length} read',
-                          onTap: () => _push(context, StoriesScreen(progress: progress)),
-                        ),
+                    child: _ActivityGrid(tiles: [
+                      _ActivityTile(
+                        icon: Icons.menu_book,
+                        color: const Color(0xFF2E86AB),
+                        title: 'Stories',
+                        subtitle: '${progress.storiesRead.length} of ${stories.length} read',
+                        onTap: () => _push(context, StoriesScreen(progress: progress)),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ActivityTile(
-                          icon: Icons.mic,
-                          color: const Color(0xFF3BB273),
-                          title: 'Speaking',
-                          subtitle: 'Say it, check your tones',
-                          onTap: () => _push(context, SpeakingScreen(progress: progress)),
-                        ),
+                      _ActivityTile(
+                        icon: Icons.forum_outlined,
+                        color: const Color(0xFF7B61FF),
+                        title: 'Dialogues',
+                        subtitle: '${progress.dialoguesDone.length} of ${dialogues.length} done',
+                        onTap: () => _push(context, DialoguesScreen(progress: progress)),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _ActivityTile(
-                          icon: Icons.timer_outlined,
-                          color: const Color(0xFFD7263D),
-                          title: 'Mini exam',
-                          subtitle: progress.bestExam == null ? 'HSK 1 style test' : 'Best: ${progress.bestExam} / 200',
-                          onTap: () => _push(context, ExamIntroScreen(progress: progress)),
-                        ),
+                      _ActivityTile(
+                        icon: Icons.mic,
+                        color: const Color(0xFF3BB273),
+                        title: 'Speaking',
+                        subtitle: 'Say it, check your tones',
+                        onTap: () => _push(context, SpeakingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.graphic_eq,
+                        color: const Color(0xFFE4572E),
+                        title: 'Tone pairs',
+                        subtitle: 'The 20 tone combinations',
+                        onTap: () => _push(context, TonePairsScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.keyboard_alt_outlined,
+                        color: const Color(0xFF00897B),
+                        title: 'Type pinyin',
+                        subtitle: 'Hear it, type it',
+                        onTap: () => _push(context, TypingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.sports_esports_outlined,
+                        color: const Color(0xFFF4A259),
+                        title: 'Games',
+                        subtitle: 'Speed match, falling characters',
+                        onTap: () => _push(context, GamesScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.timer_outlined,
+                        color: const Color(0xFFD7263D),
+                        title: 'Mini exam',
+                        subtitle: progress.bestExamFor(level) == null
+                            ? 'HSK $level style test'
+                            : 'HSK $level best: ${progress.bestExamFor(level)} / ${examMaxFor(level)}',
+                        onTap: () => _push(context, ExamIntroScreen(progress: progress, level: level)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.lightbulb_outline,
+                        color: const Color(0xFF8D6E63),
+                        title: 'Grammar',
+                        subtitle: '${grammarTips.length} short tips',
+                        onTap: () => _push(context, GrammarScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.insights,
+                        color: const Color(0xFF546E7A),
+                        title: 'Stats & badges',
+                        subtitle: '${earnedBadges(progress).length} of ${badges.length} badges',
+                        onTap: () => _push(context, StatsScreen(progress: progress)),
                       ),
                     ]),
                   ),
@@ -264,6 +310,19 @@ class _GoalCard extends StatelessWidget {
 }
 
 /// A small card on the home screen that opens a practice activity.
+/// Practice activities in rows of three (two on a narrow window).
+class _ActivityGrid extends StatelessWidget {
+  final List<Widget> tiles;
+  const _ActivityGrid({required this.tiles});
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
+        final perRow = c.maxWidth >= 420 ? 3 : 2;
+        final w = (c.maxWidth - 8 * (perRow - 1)) / perRow;
+        return Wrap(spacing: 8, runSpacing: 8, children: [for (final t in tiles) SizedBox(width: w, child: t)]);
+      });
+}
+
 class _ActivityTile extends StatelessWidget {
   final IconData icon;
   final Color color;
@@ -284,11 +343,15 @@ class _ActivityTile extends StatelessWidget {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 CircleAvatar(radius: 18, backgroundColor: color, child: Icon(icon, color: Colors.white, size: 20)),
                 const SizedBox(height: 8),
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                // Two lines tall, so tiles in a row line up.
+                SizedBox(
+                  height: 34,
+                  child: Text(subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                ),
               ]),
             ),
           ),
