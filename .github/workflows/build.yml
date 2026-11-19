@@ -1,0 +1,89 @@
+# Builds ready-to-use Windows and Mac versions of the app.
+#
+# - Every push to main: runs the tests and builds both apps. The files appear under
+#   "Artifacts" on the workflow run's page (Actions tab).
+# - Pushing a tag like v1.0.0: also publishes them on the repository's Releases page,
+#   which is the easy place to download them from.
+name: Build apps
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write # needed to publish a release on tags
+
+env:
+  FLUTTER_VERSION: '3.50.0'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test
+
+  windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter build windows --release
+      - name: Zip the app folder
+        shell: pwsh
+        run: Compress-Archive -Path build\windows\x64\runner\Release\* -DestinationPath HanziSteps-Windows.zip
+      - name: Make the installer
+        shell: pwsh
+        run: |
+          $version = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9.]+)').Matches[0].Groups[1].Value
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "/DAppVersion=$version" installer\windows.iss
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HanziSteps-Windows
+          path: |
+            HanziSteps-Windows-Setup.exe
+            HanziSteps-Windows.zip
+      - name: Publish release files
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            HanziSteps-Windows-Setup.exe
+            HanziSteps-Windows.zip
+
+  macos:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter build macos --release
+      - name: Zip the app
+        run: ditto -c -k --keepParent "build/macos/Build/Products/Release/Hanzi Steps.app" HanziSteps-Mac.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HanziSteps-Mac
+          path: HanziSteps-Mac.zip
+      - name: Publish release files
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HanziSteps-Mac.zip
