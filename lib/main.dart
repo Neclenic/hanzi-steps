@@ -5,6 +5,7 @@ import 'logic/reminders.dart';
 import 'logic/settings.dart';
 import 'logic/speech.dart';
 import 'screens/home_screen.dart';
+import 'widgets/badge_watcher.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,12 +16,16 @@ Future<void> main() async {
   // Set this week's reminders, and skip today's once the goal is reached.
   progress.onGoalChanged = () => refreshReminders(progress);
   refreshReminders(progress);
-  runApp(HanziStepsApp(progress: progress));
+  // Shows a note when a badge is earned.
+  final navigator = GlobalKey<NavigatorState>();
+  BadgeWatcher(progress, navigator).start();
+  runApp(HanziStepsApp(progress: progress, navigatorKey: navigator));
 }
 
 class HanziStepsApp extends StatelessWidget {
   final Progress progress;
-  const HanziStepsApp({super.key, required this.progress});
+  final GlobalKey<NavigatorState>? navigatorKey;
+  const HanziStepsApp({super.key, required this.progress, this.navigatorKey});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +42,7 @@ class HanziStepsApp extends StatelessWidget {
         );
     return MaterialApp(
       title: 'Hanzi Steps',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: theme(Brightness.light),
       darkTheme: theme(Brightness.dark),

@@ -15,28 +15,34 @@ const _red = Color(0xFFD7263D);
 /// Explains the mini exam before it starts.
 class ExamIntroScreen extends StatelessWidget {
   final Progress progress;
-  const ExamIntroScreen({super.key, required this.progress});
+  final int level;
+  const ExamIntroScreen({super.key, required this.progress, this.level = 1});
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final best = progress.bestExam;
+    final best = progress.bestExamFor(level);
+    final max = examMaxFor(level), pass = examPassFor(level);
+    final time = examTimeFor(level);
     return Scaffold(
-      appBar: AppBar(title: const Text('Mini HSK 1 exam')),
+      appBar: AppBar(title: Text('Mini HSK $level exam')),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560),
           child: ListView(padding: const EdgeInsets.all(24), children: [
             const FadeSlideIn(child: Center(child: Text('📝', style: TextStyle(fontSize: 64)))),
             const SizedBox(height: 8),
-            const Text('A practice test in the style of the real HSK 1 exam',
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text('A practice test in the style of the real HSK $level exam',
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
             _Row(Icons.headphones, 'Part 1: Listening', '$examQuestionsPerPart questions. Each recording can be played twice, like in the real exam.'),
             _Row(Icons.chrome_reader_mode_outlined, 'Part 2: Reading', '$examQuestionsPerPart questions: pictures, replies and gaps to fill.'),
-            _Row(Icons.timer_outlined, '${examTime.inMinutes} minutes', 'The clock keeps running. Unanswered questions score nothing.'),
-            _Row(Icons.emoji_events_outlined, 'Scored out of $examMaxScore',
-                'Each part is worth 100 points. $examPassScore is a pass, the same as the real HSK 1.'),
+            if (level >= 3)
+              const _Row(Icons.edit_outlined, 'Part 3: Writing',
+                  '$examWritingQuestions questions: pick the missing character from its pinyin. In the real exam you write it by hand.'),
+            _Row(Icons.timer_outlined, '${time.inMinutes} minutes', 'The clock keeps running. Unanswered questions score nothing.'),
+            _Row(Icons.emoji_events_outlined, 'Scored out of $max',
+                'Each part is worth 100 points. $pass is a pass, the same as the real HSK $level.'),
             ValueListenableBuilder<bool>(
               valueListenable: Speech.instance.available,
               builder: (context, ok, _) => ok
@@ -46,7 +52,7 @@ class ExamIntroScreen extends StatelessWidget {
             ),
             if (best != null) ...[
               const SizedBox(height: 8),
-              Text('Your best so far: $best / $examMaxScore${best >= examPassScore ? ' (pass)' : ''}',
+              Text('Your best so far: $best / $max${best >= pass ? ' (pass)' : ''}',
                   textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
             ],
             const SizedBox(height: 24),
@@ -56,7 +62,7 @@ class ExamIntroScreen extends StatelessWidget {
                 icon: const Icon(Icons.play_arrow),
                 label: const Text('START THE EXAM', style: TextStyle(fontWeight: FontWeight.bold)),
                 onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (_) => ExamScreen(progress: progress, questions: buildExam()),
+                  builder: (_) => ExamScreen(progress: progress, questions: buildExam(level: level), level: level, time: time),
                 )),
               ),
             ),
@@ -85,7 +91,8 @@ class ExamScreen extends StatefulWidget {
   final Progress progress;
   final List<ExamQuestion> questions;
   final Duration time;
-  const ExamScreen({super.key, required this.progress, required this.questions, this.time = examTime});
+  final int level;
+  const ExamScreen({super.key, required this.progress, required this.questions, this.time = examTime, this.level = 1});
 
   @override
   State<ExamScreen> createState() => _ExamScreenState();
@@ -147,9 +154,12 @@ class _ExamScreenState extends State<ExamScreen> {
     return n;
   }
 
-  int get _listening => partScore(_right(ExamPart.listening));
-  int get _reading => partScore(_right(ExamPart.reading));
-  int get _total => _listening + _reading;
+  /// The parts in this exam, in order.
+  List<ExamPart> get _parts => [for (final p in ExamPart.values) if (widget.questions.any((q) => q.part == p)) p];
+  int _score(ExamPart p) => partScore(_right(p), widget.questions.where((q) => q.part == p).length);
+  int get _total => _parts.fold(0, (a, p) => a + _score(p));
+  int get _max => examMaxFor(widget.level);
+  int get _pass => examPassFor(widget.level);
 
   Future<void> _finish() async {
     if (_finished) return;
@@ -157,7 +167,8 @@ class _ExamScreenState extends State<ExamScreen> {
     final total = _total;
     _earnedXp = 10 + total ~/ 10;
     setState(() => _finished = true);
-    await widget.progress.finishExam(total, _earnedXp);
+    await widget.progress.finishExam(total, _earnedXp,
+        level: widget.level, passed: total >= _pass, fullMarks: total == _max);
   }
 
   Future<void> _quit() async {
@@ -213,7 +224,7 @@ class _ExamScreenState extends State<ExamScreen> {
           leading: IconButton(icon: const Icon(Icons.close), onPressed: _quit),
           title: Text(_finished
               ? 'Exam results'
-              : '${_q.part == ExamPart.listening ? 'Listening' : 'Reading'} · ${_index + 1} of ${widget.questions.length}'),
+              : '${partName(_q.part)} · ${_index + 1} of ${widget.questions.length}'),
           actions: [
             if (!_finished)
               Padding(
@@ -291,6 +302,14 @@ class _ExamScreenState extends State<ExamScreen> {
                   Center(child: PopIn(child: Text(q.picture!, style: const TextStyle(fontSize: 96)))),
                 ],
                 // In a picture check, the reading part shows the word next to the picture.
+                if (q.gapPinyin != null)
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(20)),
+                      child: Text('Missing: ${q.gapPinyin}', style: TextStyle(fontSize: 18, color: scheme.onPrimaryContainer)),
+                    ),
+                  ),
                 if (showText && q.text != null && !(listening && q.trueFalse && _voice)) ...[
                   const SizedBox(height: 12),
                   Center(child: Text(q.text!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 34))),
@@ -407,7 +426,7 @@ class _ExamScreenState extends State<ExamScreen> {
       );
 
   Widget _results(ColorScheme scheme) {
-    final total = _total, passed = total >= examPassScore;
+    final total = _total, passed = total >= _pass;
     final wrong = [
       for (final (i, q) in widget.questions.indexed)
         if (_answers[i] != q.correct) (i, q),
@@ -419,22 +438,20 @@ class _ExamScreenState extends State<ExamScreen> {
         Center(
           child: CountUp(
             value: total,
-            suffix: ' / $examMaxScore',
+            suffix: ' / $_max',
             style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold, color: passed ? _green : scheme.onSurface),
           ),
         ),
         Text(
           passed
-              ? 'Pass! The real HSK 1 pass mark is $examPassScore.'
-              : 'Not a pass yet: $examPassScore is the pass mark. Keep going!',
+              ? 'Pass! The real HSK ${widget.level} pass mark is $_pass.'
+              : 'Not a pass yet: $_pass is the pass mark. Keep going!',
           textAlign: TextAlign.center,
           style: const TextStyle(fontSize: 18),
         ),
         const SizedBox(height: 20),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _ScoreBar(label: 'Listening', score: _listening),
-          const SizedBox(width: 24),
-          _ScoreBar(label: 'Reading', score: _reading),
+        Wrap(alignment: WrapAlignment.center, spacing: 24, runSpacing: 12, children: [
+          for (final p in _parts) _ScoreBar(label: partName(p), score: _score(p)),
         ]),
         const SizedBox(height: 12),
         Text('+$_earnedXp XP', textAlign: TextAlign.center, style: TextStyle(color: Colors.amber.shade800, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -445,7 +462,8 @@ class _ExamScreenState extends State<ExamScreen> {
           for (final (i, q) in wrong)
             Card(
               child: ListTile(
-                leading: Text(q.picture ?? (q.part == ExamPart.listening ? '🎧' : '📖'), style: const TextStyle(fontSize: 28)),
+                leading: Text(q.picture ?? switch (q.part) { ExamPart.listening => '🎧', ExamPart.reading => '📖', ExamPart.writing => '✏️' },
+                    style: const TextStyle(fontSize: 28)),
                 title: Text(q.text ?? ''),
                 subtitle: Text('${q.textPinyin ?? ''}\n'
                     'Right answer: ${_describe(q, q.correct)}'

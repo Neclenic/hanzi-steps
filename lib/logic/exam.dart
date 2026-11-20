@@ -3,7 +3,13 @@ import 'dart:math';
 import '../data/course.dart';
 import '../data/exam.dart';
 
-enum ExamPart { listening, reading }
+enum ExamPart { listening, reading, writing }
+
+String partName(ExamPart p) => switch (p) {
+      ExamPart.listening => 'Listening',
+      ExamPart.reading => 'Reading',
+      ExamPart.writing => 'Writing',
+    };
 
 /// One answer to pick: words, a picture, or both.
 class ExamOption {
@@ -24,6 +30,7 @@ class ExamQuestion {
   final List<ExamOption> options;
   final int correct;
   final bool trueFalse;
+  final String? gapPinyin; // writing: the pinyin of the missing character
   const ExamQuestion({
     required this.part,
     required this.instruction,
@@ -34,28 +41,38 @@ class ExamQuestion {
     this.text,
     this.textPinyin,
     this.trueFalse = false,
+    this.gapPinyin,
   });
 }
 
-/// How the mini exam is scored, like the real HSK 1: listening and reading are
-/// worth 100 points each, 200 in total, and 120 is a pass.
+/// How the mini exam is scored, like the real HSK 1 and 2: listening and reading are
+/// worth 100 points each, 200 in total, and 120 is a pass. HSK 3 adds a writing
+/// part, so it is out of 300 and 180 is a pass.
 const examMaxScore = 200;
 const examPassScore = 120;
 const examTime = Duration(minutes: 15);
 const examQuestionsPerPart = 10;
+const examWritingQuestions = 5;
 
-int partScore(int right) => (right * 100 / examQuestionsPerPart).round();
+int examMaxFor(int level) => level >= 3 ? 300 : 200;
+int examPassFor(int level) => level >= 3 ? 180 : 120;
+Duration examTimeFor(int level) => level >= 3 ? const Duration(minutes: 20) : examTime;
+
+/// Each part is worth 100 points.
+int partScore(int right, [int questions = examQuestionsPerPart]) => (right * 100 / questions).round();
 
 String _pinyinOf(String hanzi) => wordFor(hanzi)?.pinyin ?? '';
 
-/// Builds a fresh mini exam: 10 listening questions, then 10 reading questions.
-List<ExamQuestion> buildExam({Random? random}) {
+/// Builds a fresh mini exam for an HSK level: 10 listening questions, then 10 reading
+/// questions, and for HSK 3 also 5 writing questions.
+List<ExamQuestion> buildExam({int level = 1, Random? random}) {
   final r = random ?? Random();
+  final set = examSets[level]!;
   List<T> pick<T>(List<T> from, int n) => ([...from]..shuffle(r)).take(n).toList();
-  final pics = [...examPictureWords]..shuffle(r);
-  final sents = [...examPictureSentences]..shuffle(r);
-  final qas = [...examQAs]..shuffle(r);
-  final gaps = pick(examGaps, 2);
+  final pics = [...set.pictureWords]..shuffle(r);
+  final sents = [...set.pictureSentences]..shuffle(r);
+  final qas = [...set.qas]..shuffle(r);
+  final gaps = pick(set.gaps, 2);
   var pi = 0, si = 0, qi = 0;
 
   const tf = [ExamOption('✓', pinyin: 'matches'), ExamOption('✗', pinyin: "doesn't match")];
@@ -82,7 +99,7 @@ List<ExamQuestion> buildExam({Random? random}) {
   // Which picture goes with the sentence?
   ExamQuestion pictureChoice(ExamPart part) {
     final s = sents[si++];
-    final others = pick(examPictureSentences.where((x) => x.picture != s.picture).map((x) => x.picture).toSet().toList(), 2);
+    final others = pick(set.pictureSentences.where((x) => x.picture != s.picture).map((x) => x.picture).toSet().toList(), 2);
     final options = [s.picture, ...others]..shuffle(r);
     final listening = part == ExamPart.listening;
     return ExamQuestion(
@@ -125,6 +142,20 @@ List<ExamQuestion> buildExam({Random? random}) {
     );
   }
 
+  // Which character is missing?
+  ExamQuestion charQuestion(ExamChar c) {
+    final order = [0, 1, 2]..shuffle(r);
+    return ExamQuestion(
+      part: ExamPart.writing,
+      instruction: 'Which character is missing? (In the real exam you write it by hand.)',
+      text: c.zh,
+      textPinyin: c.pinyin,
+      options: [for (final i in order) ExamOption(c.options[i])],
+      correct: order.indexOf(0),
+      gapPinyin: c.gapPinyin,
+    );
+  }
+
   const l = ExamPart.listening, rd = ExamPart.reading;
   return [
     // Listening: 3 picture checks, 3 picture choices, 4 replies.
@@ -136,5 +167,7 @@ List<ExamQuestion> buildExam({Random? random}) {
     for (var i = 0; i < 3; i++) pictureChoice(rd),
     for (var i = 0; i < 3; i++) reply(rd),
     for (final g in gaps) gap(g),
+    // Writing (HSK 3): pick the missing character.
+    for (final c in pick(set.chars, set.chars.isEmpty ? 0 : examWritingQuestions)) charQuestion(c),
   ];
 }
