@@ -8,6 +8,9 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **The full HSK 1 course**: all 150 words of HSK 1 (the classic level 1 word list of
   the official Chinese exam) in 14 themed units, after a starter unit on the four tones.
   Every lesson ends with original example sentences that only use words you already know.
+- **HSK 4 course (part 1)**: 8 themed units, 24 lessons and 168 words from the classic HSK 4 list
+  (character, strong feelings, opinions, jobs, university, health, tastes, shopping), each with original
+  example sentences, stroke-order writing and natural-voice audio. More units follow.
 - **HSK 2 and HSK 3 courses** in the same lesson style: about 150 new words for HSK 2 and
   300 for HSK 3, continuing straight on from HSK 1. Switch level with the HSK 1 / 2 / 3 buttons
   on the home screen. The first lesson of each level is always open.
@@ -186,7 +189,7 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 
 | What | File |
 |---|---|
-| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` (HSK 1), `lib/data/hsk2.dart`, `lib/data/hsk3.dart` |
+| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` (HSK 1), `lib/data/hsk2.dart`, `lib/data/hsk3.dart`, `lib/data/hsk4.dart` |
 | Daily goal reminders | `lib/logic/reminders.dart` |
 | Mini exam questions and screen | `lib/data/exam.dart`, `lib/logic/exam.dart`, `lib/screens/exam_screen.dart` |
 | Speaking practice (microphone, pitch, tones) | `lib/logic/recorder.dart`, `lib/logic/pitch.dart`, `lib/screens/speaking_screen.dart` |

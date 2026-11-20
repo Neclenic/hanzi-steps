@@ -32,6 +32,7 @@ class CultureScreen extends StatelessWidget {
             Text('Festivals, food, names and good manners. Each note also appears in its lesson.',
                 style: TextStyle(color: scheme.onSurfaceVariant)),
             for (final level in levels) ...[
+              if (cultureNotes.any((n) => _where(n.lessonId)?.$1.level == level))
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
                 child: Text('HSK $level', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

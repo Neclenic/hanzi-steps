@@ -37,6 +37,7 @@ final badges = <HsBadge>[
   HsBadge('hsk1', '🥉', 'HSK 1 complete', 'Finish every HSK 1 lesson.', 1, (p) => _levelDone(p, 1)),
   HsBadge('hsk2', '🥈', 'HSK 2 complete', 'Finish every HSK 2 lesson.', 1, (p) => _levelDone(p, 2)),
   HsBadge('hsk3', '🥇', 'HSK 3 complete', 'Finish every HSK 3 lesson.', 1, (p) => _levelDone(p, 3)),
+  HsBadge('hsk4', '🏆', 'HSK 4 complete', 'Finish every HSK 4 lesson.', 1, (p) => _levelDone(p, 4)),
   HsBadge('streak3', '🔥', 'On fire', 'Keep a 3-day streak.', 3, (p) => p.bestStreak),
   HsBadge('streak7', '📅', 'One week', 'Keep a 7-day streak.', 7, (p) => p.bestStreak),
   HsBadge('streak30', '🌋', 'Unstoppable', 'Keep a 30-day streak.', 30, (p) => p.bestStreak),
