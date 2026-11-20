@@ -18,7 +18,9 @@ FORMAT = 'audio-24khz-48kbitrate-mono-mp3'
 OUT = 'assets/voice'
 
 CJK = re.compile(r'[一-鿿]')
-ONLY_CHINESE = re.compile(r'^[一-鿿　-〿＀-￯ …·—\-]+$')
+ONLY_CHINESE = re.compile(r'^[一-鿿　-〿＀-￯‘’“” …·—\-]+$')
+# Listening clips (lib/data/listening.dart): speaker A is a woman, B a man.
+VOICES = {'A': 'zh-CN-XiaoxiaoNeural', 'B': 'zh-CN-YunxiNeural'}
 
 
 def clip_name(text):
@@ -53,8 +55,8 @@ class Azure:
             self.token, self.at = urllib.request.urlopen(req, timeout=30).read().decode(), time.time()
         return self.token
 
-    def record(self, text):
-        ssml = f"<speak version='1.0' xml:lang='zh-CN'><voice name='{VOICE}'>{html.escape(text)}</voice></speak>"
+    def record(self, text=None, ssml=None):
+        ssml = ssml or f"<speak version='1.0' xml:lang='zh-CN'><voice name='{VOICE}'>{html.escape(text)}</voice></speak>"
         for attempt in range(8):
             try:
                 req = urllib.request.Request(
@@ -75,6 +77,21 @@ class Azure:
         raise RuntimeError(f'Could not record {text}')
 
 
+def find_listening():
+    """The listening clips in lib/data/listening.dart, as (id, [(speaker, text)])."""
+    src = open('lib/data/listening.dart', encoding='utf-8').read()
+    out = []
+    for part in re.split(r"\n  ListenClip\(", src)[1:]:
+        cid = re.match(r"'([\w-]+)'", part).group(1)
+        out.append((cid, re.findall(r"_L\('([AB])', '([^']+)'", part)))
+    return out
+
+
+def listening_ssml(lines):
+    parts = [f"<voice name='{VOICES[s]}'>{html.escape(t)}<break time='350ms'/></voice>" for s, t in lines]
+    return "<speak version='1.0' xml:lang='zh-CN'>" + ''.join(parts) + '</speak>'
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--extra', help='a file with more text to record, one per line')
@@ -88,6 +105,13 @@ def main():
         print('\n'.join(todo))
         return
     azure = Azure()
+    # Listening clips are recorded whole, at natural speed, with a voice for each speaker.
+    for cid, lines in find_listening():
+        path = f'{OUT}/listen-{cid}.mp3'
+        if not os.path.exists(path):
+            open(path + '.tmp', 'wb').write(azure.record(ssml=listening_ssml(lines)))
+            os.replace(path + '.tmp', path)
+            print('Recorded listening clip', cid, flush=True)
     for i, t in enumerate(todo, 1):
         data = azure.record(t)
         path = f'{OUT}/{clip_name(t)}.mp3'

@@ -13,6 +13,7 @@ import '../logic/badges.dart';
 import '../data/exam.dart';
 import '../logic/exam.dart';
 import '../data/culture.dart';
+import '../data/listening.dart';
 import '../data/look_alikes.dart';
 import '../data/textbook.dart';
 import '../data/idioms.dart';
@@ -22,6 +23,8 @@ import '../logic/version.dart';
 import '../logic/weekly_report.dart';
 import '../widgets/panda.dart';
 import 'culture_screen.dart';
+import 'listening_screen.dart';
+import 'shadowing_screen.dart';
 import 'idioms_screen.dart';
 import 'measure_words_screen.dart';
 import 'memory_writing_screen.dart';
@@ -168,6 +171,13 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => _push(context, DialoguesScreen(progress: progress)),
                       ),
                       _ActivityTile(
+                        icon: Icons.headphones,
+                        color: const Color(0xFF0D47A1),
+                        title: 'Listening',
+                        subtitle: '${progress.listenDone.length} of ${listenClips.length} · real speed',
+                        onTap: () => _push(context, ListeningScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
                         icon: Icons.luggage_outlined,
                         color: const Color(0xFF00838F),
                         title: 'Survival phrases',
@@ -180,6 +190,13 @@ class HomeScreen extends StatelessWidget {
                         title: 'Speaking',
                         subtitle: 'Say it, check your tones',
                         onTap: () => _push(context, SpeakingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.record_voice_over,
+                        color: const Color(0xFF00695C),
+                        title: 'Shadowing',
+                        subtitle: 'Repeat right after Xiaoxiao',
+                        onTap: () => _push(context, ShadowingScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.graphic_eq,

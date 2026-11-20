@@ -27,6 +27,13 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **Speaking practice**: say a syllable or a word, and the app listens and checks your tones,
   drawing the pitch of your voice next to the shape it should have. It only checks tones, not
   the sounds themselves. On a Mac the app asks for the microphone the first time.
+- **Shadowing**: Xiaoxiao says a sentence and you repeat it straight after her, copying her rhythm
+  and melody. Your tone line is then drawn over hers, with each syllable green (right tone) or red
+  (tone to work on). Choose sentences from your finished lessons, dialogue lines or survival phrases.
+  Space starts, Enter goes to the next sentence. Headphones help, so the microphone only hears you.
+- **Listening at real speed**: 10 short conversations and talks at HSK 3 and 4 level, read at natural
+  speed by two voices (a woman, Xiaoxiao, and a man, Yunxi), each with three questions like the HSK
+  listening test. After answering you see the words, pinyin and English. "A bit slower" plays at 80%.
 - **Tone pairs**: practise the 20 two-syllable tone combinations (like mā-má or nǐ-hǎo). A grid
   shows how often you get each pair right; tap a pair for example words. The tone quiz plays a word
   and you pick its pair (pairs you miss come up more often), and "Say them" lets you speak them.
@@ -106,13 +113,16 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 
 ## Sound
 
-About 3,700 recordings of a natural Mandarin voice (Xiaoxiao, made with Azure neural text-to-speech)
+About 4,200 recordings of a natural Mandarin voice (Xiaoxiao, made with Azure neural text-to-speech)
 come with the app in `assets/voice`, so no internet is needed. They cover every course word, sentence,
 story, dialogue, textbook lesson, idiom, survival phrase and pinyin-chart character. Settings → Natural
 voice turns them off.
 
 To record new text after adding content, run `python3 tool/make_voice.py --extra tool/voice_extra.txt`.
-It needs network access to the Azure Speech service (see the top of that file). The key is never stored
+It also records each listening clip in `lib/data/listening.dart` whole, as `listen-<id>.mp3`, with
+speaker A read by Xiaoxiao and speaker B by Yunxi. After recording new sentences, run
+`dart run tool/make_pitch.dart` (needs ffmpeg) to update `assets/voice/pitch.json`, the pitch lines
+of Xiaoxiao's voice that shadowing draws. It needs network access to the Azure Speech service (see the top of that file). The key is never stored
 in the project. `test/voice_test.dart` fails if a course word, dialogue line, idiom, phrase or chart
 character has no recording.
 
@@ -228,6 +238,8 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | The writing box | `lib/widgets/character_writer.dart` |
 | Writing practice page | `lib/screens/writing_screen.dart` |
 | Reading Chinese aloud (recordings, then the computer's voice) | `lib/logic/speech.dart`, `assets/voice/`, `tool/make_voice.py` |
+| Shadowing | `lib/logic/shadowing.dart`, `lib/screens/shadowing_screen.dart`, `tool/make_pitch.dart` |
+| Listening at real speed | `lib/data/listening.dart`, `lib/screens/listening_screen.dart` |
 | The lesson path (home screen) | `lib/screens/home_screen.dart` |
 | The lesson and quiz screens | `lib/screens/lesson_screen.dart` |
 
