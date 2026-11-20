@@ -28,6 +28,20 @@ Future<void> main() async {
   runApp(HanziStepsApp(progress: progress, navigatorKey: navigator));
 }
 
+/// Fonts for Chinese characters, in order of preference. Without these, a computer set to another
+/// language may borrow a Japanese font, which draws some characters (喝, 啡, 说…) differently from
+/// the Simplified Chinese forms learners need. One of these is on every Windows PC and Mac.
+const chineseFonts = [
+  'Microsoft YaHei', // Windows
+  'Microsoft YaHei UI',
+  'PingFang SC', // Mac
+  'Hiragino Sans GB',
+  'Noto Sans CJK SC', // Linux and others
+  'Noto Sans SC',
+  'Source Han Sans SC',
+  'WenQuanYi Micro Hei',
+];
+
 class HanziStepsApp extends StatelessWidget {
   final Progress progress;
   final GlobalKey<NavigatorState>? navigatorKey;
@@ -38,6 +52,8 @@ class HanziStepsApp extends StatelessWidget {
     ThemeData theme(Brightness b) => ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD7263D), brightness: b),
           useMaterial3: true,
+          // Latin text keeps the system font; Chinese characters use a Simplified Chinese font.
+          fontFamilyFallback: chineseFonts,
           // Screens slide and fade into each other.
           pageTransitionsTheme: const PageTransitionsTheme(builders: {
             TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
