@@ -87,7 +87,7 @@ class WordDetails extends StatelessWidget {
             Expanded(
               child: Text(
                 taught == null
-                    ? 'Extra word from the stories, not taught in a lesson'
+                    ? 'Extra word, not taught in a course lesson'
                     : '${taught.$1.tag.isEmpty ? 'HSK ${taught.$1.level}' : taught.$1.tag} · ${taught.$1.title}\n'
                         'Lesson "${taught.$2.title}"${learned ? ' (done)' : ''}',
                 style: TextStyle(color: scheme.onSurfaceVariant),

@@ -422,10 +422,19 @@ class Progress extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- Textbook ----
+  Set<String> get textbookDone => (_prefs.getStringList('tbDone') ?? const []).toSet();
+
+  Future<void> finishTextbook(String id, int earnedXp) async {
+    await _prefs.setStringList('tbDone', {...textbookDone, id}.toList());
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
+
   Future<void> reset() async {
     for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examBest2', 'examBest3', 'examsTaken', 'examsPassed', 'examFullMarks',
       'counters', 'toneStats', 'pairStats', 'dialoguesDone', 'badgesSeen', 'bestStreak', 'goalDays',
-      'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName']) {
+      'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName', 'tbDone']) {
       await _prefs.remove(k);
     }
     notifyListeners();

@@ -3,6 +3,7 @@ import 'dart:math';
 import '../data/course.dart';
 import '../data/dialogues.dart';
 import '../data/stories.dart';
+import '../data/textbook.dart';
 import 'panda.dart';
 import 'progress.dart';
 import 'tone_pairs.dart';
@@ -24,6 +25,7 @@ class HsBadge {
 int _lessonsDone(Progress p) => allLessons.where(p.isDone).length;
 int _levelDone(Progress p, int level) => lessonsOf(level).every(p.isDone) ? 1 : 0;
 int _pairsRight(Progress p) => tonePairs.where((t) => (p.pairStats[t.key]?.$1 ?? 0) > 0).length;
+int _textbookLessons(Progress p) => tbLessons.where((l) => p.textbookDone.contains(l.id)).length;
 int _bestGame(Progress p) => max(p.gameBest('match'), p.gameBest('fall'));
 
 final badges = <HsBadge>[
@@ -58,6 +60,9 @@ final badges = <HsBadge>[
   HsBadge('dictation10', '👂', 'Good ears', 'Get 10 dictation sentences right.', 10, (p) => p.count('dictationRight')),
   HsBadge('mywords10', '⭐', 'Collector', 'Save 10 words to My words.', 10, (p) => p.myWords.length),
   HsBadge('panda', '🐼', 'Panda parent', 'Grow your panda into a young panda.', 2, (p) => pandaStageFor(p.xp)),
+  HsBadge('textbook6', '🎒', 'Good pupil', 'Finish 6 textbook lessons.', 6, _textbookLessons),
+  HsBadge('textbook-all', '🏫', 'Top of the class', 'Finish every textbook lesson and review corner.', tbLessons.length + tbUnits.length,
+      (p) => p.textbookDone.length),
 ];
 
 /// The ids of the badges earned so far.
