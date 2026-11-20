@@ -75,12 +75,13 @@ class Speech {
   }
 
   /// Say some Chinese text out loud. Safe to call even if there's no voice.
-  Future<void> say(String hanzi) async {
+  /// [slow] reads it slowly whatever the speed setting is.
+  Future<void> say(String hanzi, {bool slow = false}) async {
     final tts = _tts;
     if (tts == null || !available.value) return;
     try {
       await tts.stop();
-      await tts.setSpeechRate(rate);
+      await tts.setSpeechRate(slow ? (kIsWeb ? 0.6 : 0.3) : rate);
       await tts.speak(hanzi);
     } catch (e) {
       debugPrint('Speech failed: $e');

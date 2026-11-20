@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../data/char_stories.dart';
+import '../data/culture.dart';
 import '../data/course.dart';
 import '../data/grammar.dart';
 import '../logic/exercises.dart';
@@ -57,7 +58,7 @@ class _LessonScreenState extends State<LessonScreen> {
   String? get _stepAudio => switch (_step) {
         TeachWordStep s => s.word.hanzi,
         TeachToneStep s => s.example.hanzi,
-        GrammarStep() => null,
+        GrammarStep() || CultureStep() => null,
         ChoiceStep s => s.speak,
         // Don't give the sentence away before it's built.
         SentenceStep s => _checked ? s.sentence.hanzi : null,
@@ -82,7 +83,7 @@ class _LessonScreenState extends State<LessonScreen> {
   }
 
   bool get _canPress => switch (_step) {
-        TeachWordStep() || TeachToneStep() || GrammarStep() => true,
+        TeachWordStep() || TeachToneStep() || GrammarStep() || CultureStep() => true,
         ChoiceStep() => _selected != null,
         SentenceStep() => _built.isNotEmpty,
         WriteStep() => true, // can always skip writing
@@ -289,6 +290,7 @@ class _LessonScreenState extends State<LessonScreen> {
         TeachWordStep s => _TeachWord(word: s.word),
         TeachToneStep s => _TeachTone(step: s),
         GrammarStep s => GrammarCard(tip: s.tip),
+        CultureStep s => CultureCard(note: s.note),
         ChoiceStep s => _ChoiceView(step: s, selected: _selected, checked: _checked, onSelect: _select),
         SentenceStep s => _SentenceView(
             step: s, built: _built, checked: _checked, onAdd: _addTile, onRemove: _removeTile),
@@ -798,7 +800,7 @@ class _SentenceView extends StatelessWidget {
           ),
         ),
         child: Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final i in built) _WordTile(text: step.bank[i], onTap: checked ? null : () => onRemove(i)),
+          for (final i in built) WordTile(text: step.bank[i], onTap: checked ? null : () => onRemove(i)),
         ]),
       ),
       const SizedBox(height: 28),
@@ -806,19 +808,19 @@ class _SentenceView extends StatelessWidget {
       Wrap(alignment: WrapAlignment.center, spacing: 8, runSpacing: 8, children: [
         for (final (i, t) in step.bank.indexed)
           built.contains(i)
-              ? _WordTile(text: t, ghost: true)
-              : _WordTile(text: t, number: i + 1, onTap: checked ? null : () => onAdd(i)),
+              ? WordTile(text: t, ghost: true)
+              : WordTile(text: t, number: i + 1, onTap: checked ? null : () => onAdd(i)),
       ]),
     ]);
   }
 }
 
-class _WordTile extends StatelessWidget {
+class WordTile extends StatelessWidget {
   final String text;
   final int? number;
   final bool ghost;
   final VoidCallback? onTap;
-  const _WordTile({required this.text, this.number, this.ghost = false, this.onTap});
+  const WordTile({required this.text, this.number, this.ghost = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -873,6 +875,44 @@ class _WriteView extends StatelessWidget {
           style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
       const SizedBox(height: 12),
       CharacterWriter(char: step.char, size: 280, onComplete: (_) => onDone()),
+    ]);
+  }
+}
+
+// ---------- Culture ----------
+
+/// A short culture note, with a few useful words you can hear.
+class CultureCard extends StatelessWidget {
+  final CultureNote note;
+  const CultureCard({super.key, required this.note});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Center(child: _NewBadge('DID YOU KNOW?')),
+      const SizedBox(height: 16),
+      Center(child: PopIn(child: Text(note.emoji, style: const TextStyle(fontSize: 64)))),
+      const SizedBox(height: 8),
+      Text(note.title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+      const SizedBox(height: 12),
+      Text(note.text, style: const TextStyle(fontSize: 17, height: 1.4)),
+      const SizedBox(height: 12),
+      for (final (i, (zh, py, en)) in note.words.indexed)
+        FadeSlideIn(
+          delay: Duration(milliseconds: 120 * (i + 1)),
+          child: Card(
+            child: ListTile(
+              title: Text(zh, style: const TextStyle(fontSize: 22)),
+              subtitle: Text.rich(TextSpan(children: [
+                if (Settings.instance.showPinyin)
+                  TextSpan(text: '$py  ', style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600)),
+                TextSpan(text: en),
+              ])),
+              trailing: SpeakButton(zh),
+            ),
+          ),
+        ),
     ]);
   }
 }

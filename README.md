@@ -35,7 +35,24 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   Listen to the other person, pick your reply from three, then say it aloud if you like.
 - **Type pinyin**: hear a word and type it in pinyin. Type tones as numbers (ni3hao3) and they
   turn into marks as you type (nǐhǎo). Light tones can be left out.
-- **Badges**: 26 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Numbers in real life**: prices (三块五 = ¥3.50), phone numbers (typed as digits, with 幺 yāo for 1),
+  dates (十一月二十号，星期五) and clock times (下午两点半). Listen and pick, read and pick, or pick the Chinese
+  for a price or time. Wrong answers are numbers that are easy to mix up, like 4 and 10 or 7 and 1.
+- **Look-alike characters**: 24 groups such as 人/入/八, 大/太/天, 己/已, 买/卖 and 在/再, each with a tip on how
+  to tell them apart and a drill that asks the groups you miss more often.
+- **Dictation**: hear a sentence from your finished lessons, then build it from word tiles or type it in
+  pinyin (tones optional), with a "Slowly" button.
+- **Word search**: look up any course word by characters, pinyin (with or without tones) or English, and see
+  where it's taught, how its characters are built, and which look-alikes to watch out for.
+- **My words**: tap ☆ on a word in a story, a dialogue or word search to save it, then practise only those.
+- **Placement test**: answers a few questions per two units and stops at the first part you don't know yet,
+  then offers to skip those lessons. Their words come back in reviews over the next two weeks.
+- **Culture notes**: 36 "Did you know?" cards inside lessons, on festivals, food, names and good manners,
+  plus a Culture page listing them all.
+- **Pet panda**: grows from a baby panda to a panda master as you earn XP. It's happy when you reach your
+  daily goal and gets hungry (and then sad) when reviews pile up. The "Feed" button starts a review.
+  Tap its name to rename it.
+- **Badges**: 31 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
 - **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
   tone pairs and words you miss most (with a button to practise those words), and your badges.
 - **Quick games**: Speed match (match characters and meanings against the clock) and Falling
@@ -147,6 +164,13 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Stats page | `lib/screens/stats_screen.dart` |
 | Quick games | `lib/screens/games_screen.dart` |
 | Shared quiz pieces (answer tiles, bottom bar, results) | `lib/widgets/quiz_parts.dart` |
+| Numbers in real life | `lib/logic/numbers.dart`, `lib/screens/numbers_screen.dart` |
+| Look-alike characters | `lib/data/look_alikes.dart`, `lib/screens/look_alikes_screen.dart` |
+| Dictation | `lib/screens/dictation_screen.dart` |
+| Word search, word details and My words | `lib/logic/word_lookup.dart`, `lib/widgets/word_sheet.dart`, `lib/screens/word_search_screen.dart`, `lib/screens/my_words_screen.dart` |
+| Placement test | `lib/logic/placement.dart`, `lib/screens/placement_screen.dart` |
+| Culture notes | `lib/data/culture.dart`, `lib/screens/culture_screen.dart` |
+| Pet panda | `lib/logic/panda.dart`, `lib/widgets/panda.dart` |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
 | Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
@@ -170,7 +194,9 @@ has duplicate answers, that HSK 1 has exactly 150 words, that every sentence can
 from words already taught, and that review works. It also checks the daily goal, builds and
 plays through mini exams for all three levels, and checks the tone detector on made-up voice
 recordings. It also checks that grammar examples and dialogues only use words already taught,
-that typed pinyin is marked right or wrong correctly, and plays through each game.
+that typed pinyin is marked right or wrong correctly, and plays through each game. It also checks how numbers
+are written and said, that look-alike examples and culture notes fit their lessons, the placement test,
+word search, My words and the panda's moods.
 
 ## Not in this version yet
 

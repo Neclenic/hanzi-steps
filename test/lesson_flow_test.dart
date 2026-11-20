@@ -51,7 +51,7 @@ Future<Progress> playThrough(WidgetTester tester, Lesson lesson, {Progress? exis
       for (final t in sentence.tiles) {
         // Tap a tile in the word bank that is still free (a word can appear twice).
         final free = find.byWidgetPredicate((w) {
-          if (w.runtimeType.toString() != '_WordTile') return false;
+          if (w.runtimeType.toString() != 'WordTile') return false;
           final d = w as dynamic;
           return d.text == t && d.number != null && d.ghost == false;
         });

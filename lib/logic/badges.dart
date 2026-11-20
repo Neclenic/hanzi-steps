@@ -3,6 +3,7 @@ import 'dart:math';
 import '../data/course.dart';
 import '../data/dialogues.dart';
 import '../data/stories.dart';
+import 'panda.dart';
 import 'progress.dart';
 import 'tone_pairs.dart';
 
@@ -52,6 +53,11 @@ final badges = <HsBadge>[
   HsBadge('exam-all', '🎓', 'Graduate', 'Pass the HSK 1, 2 and 3 mini exams.', 3, (p) => p.examsPassed.length),
   HsBadge('exam-full', '💯', 'Top marks', 'Get full marks in a mini exam.', 1, (p) => p.examFullMarks ? 1 : 0),
   HsBadge('game20', '🎮', 'High score', 'Score 20 in a quick game.', 20, _bestGame),
+  HsBadge('numbers30', '💴', 'Number cruncher', 'Get 30 number questions right.', 30, (p) => p.count('numbersRight')),
+  HsBadge('looks30', '🔍', 'Sharp eyes', 'Get 30 look-alike questions right.', 30, (p) => p.count('lookAlikeRight')),
+  HsBadge('dictation10', '👂', 'Good ears', 'Get 10 dictation sentences right.', 10, (p) => p.count('dictationRight')),
+  HsBadge('mywords10', '⭐', 'Collector', 'Save 10 words to My words.', 10, (p) => p.myWords.length),
+  HsBadge('panda', '🐼', 'Panda parent', 'Grow your panda into a young panda.', 2, (p) => pandaStageFor(p.xp)),
 ];
 
 /// The ids of the badges earned so far.

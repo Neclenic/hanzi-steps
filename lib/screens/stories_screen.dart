@@ -6,7 +6,9 @@ import '../logic/progress.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
 import '../logic/story_words.dart';
+import '../logic/word_lookup.dart';
 import '../widgets/anim.dart';
+import '../widgets/word_sheet.dart';
 
 const _green = Color(0xFF2E9E5B);
 const _red = Color(0xFFD7263D);
@@ -310,6 +312,8 @@ class _WordSheetState extends State<_WordSheet> {
                 ? IconButton(icon: const Icon(Icons.volume_up), onPressed: () => Speech.instance.say(w.hanzi))
                 : const SizedBox.shrink(),
           ),
+          const Spacer(),
+          if (lookupWord(w.hanzi) != null) MyWordButton(hanzi: w.hanzi, progress: widget.progress),
         ]),
         Text(w.pinyin, style: TextStyle(fontSize: 20, color: scheme.primary, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),

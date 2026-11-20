@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../data/course.dart';
+import '../data/culture.dart';
 import '../data/grammar.dart';
 
 /// One screen inside a lesson.
@@ -18,6 +19,12 @@ class TeachWordStep extends LessonStep {
 class GrammarStep extends LessonStep {
   final GrammarTip tip;
   const GrammarStep(this.tip);
+}
+
+/// A short note about life and culture in China.
+class CultureStep extends LessonStep {
+  final CultureNote note;
+  const CultureStep(this.note);
 }
 
 /// Teaches one of the four tones.
@@ -272,6 +279,8 @@ List<LessonStep> _vocabLesson(Lesson lesson, Random rnd, bool withAudio) {
     practice.shuffle(rnd);
   }
   steps.addAll(practice);
+  // A culture note, if this lesson has one: a little break before the sentences.
+  if (cultureFor(lesson.id) case final note?) steps.add(CultureStep(note));
   // Build the lesson's example sentences.
   steps.addAll(lesson.sentences.map((s) => _sentenceStep(s, lesson, rnd)));
   // Write up to two of the new characters.
