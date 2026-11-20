@@ -65,6 +65,7 @@ class TbChoice extends TbQuestion {
   final String? explain; // shown after checking
   final String? speak; // Chinese read out after checking
   final bool bigOptions; // options are single characters
+  final String? tag; // what the question is about, for drills that keep score
   const TbChoice({
     required this.heading,
     required this.prompt,
@@ -75,6 +76,7 @@ class TbChoice extends TbQuestion {
     this.explain,
     this.speak,
     this.bigOptions = false,
+    this.tag,
   });
 }
 

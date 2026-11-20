@@ -46,4 +46,11 @@ class Settings extends ChangeNotifier {
     _prefs?.setInt('reminderMinute', minute);
     notifyListeners();
   }
+
+  /// Look on GitHub once a day for a newer version of the app.
+  bool get updateCheck => _prefs?.getBool('updateCheck') ?? true;
+  set updateCheck(bool v) {
+    _prefs?.setBool('updateCheck', v);
+    notifyListeners();
+  }
 }

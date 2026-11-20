@@ -4,6 +4,8 @@ import '../logic/progress.dart';
 import '../logic/reminders.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
+import '../logic/version.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   final Progress progress;
@@ -48,6 +50,15 @@ class SettingsScreen extends StatelessWidget {
                 value: settings.showPinyin,
                 onChanged: (v) => settings.showPinyin = v,
               ),
+              const SizedBox(height: 16),
+              const _Heading('Updates'),
+              SwitchListTile(
+                title: const Text('Tell me when a new version is out'),
+                subtitle: const Text('Looks on GitHub once a day. Nothing about you is sent.'),
+                value: settings.updateCheck,
+                onChanged: (v) => settings.updateCheck = v,
+              ),
+              _CheckNow(progress: progress),
               const SizedBox(height: 16),
               const _Heading('Sound'),
               ValueListenableBuilder<bool>(
@@ -199,4 +210,44 @@ class ReminderSettings extends StatelessWidget {
       ]),
     );
   }
+}
+
+/// Shows this version and checks GitHub for a newer one on request.
+class _CheckNow extends StatefulWidget {
+  final Progress progress;
+  const _CheckNow({required this.progress});
+
+  @override
+  State<_CheckNow> createState() => _CheckNowState();
+}
+
+class _CheckNowState extends State<_CheckNow> {
+  String? _result;
+  UpdateInfo? _found;
+  bool _busy = false;
+
+  Future<void> _check() async {
+    setState(() => _busy = true);
+    final found = await UpdateChecker.instance.check(widget.progress, force: true);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _found = found;
+      _result = found != null ? 'Version ${found.version} is out. Tap to download it.' : 'You have the newest version (or there is no internet).';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        title: Text('Hanzi Steps $appVersion'),
+        subtitle: Text(_result ?? 'Tap to check for a new version now.'),
+        trailing: _busy
+            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+            : Icon(_found != null ? Icons.download : Icons.refresh),
+        onTap: _busy
+            ? null
+            : _found != null
+                ? () => launchUrl(Uri.parse(_found!.url))
+                : _check,
+      );
 }

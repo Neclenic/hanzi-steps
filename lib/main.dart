@@ -4,6 +4,8 @@ import 'logic/progress.dart';
 import 'logic/reminders.dart';
 import 'logic/settings.dart';
 import 'logic/speech.dart';
+import 'logic/version.dart';
+import 'logic/weekly_report.dart';
 import 'screens/home_screen.dart';
 import 'widgets/badge_watcher.dart';
 
@@ -19,6 +21,10 @@ Future<void> main() async {
   // Shows a note when a badge is earned.
   final navigator = GlobalKey<NavigatorState>();
   BadgeWatcher(progress, navigator).start();
+  // Counts minutes in the app for the weekly report.
+  TimeTracker(progress).start();
+  // Looks for a newer version on GitHub (once a day, in the background).
+  UpdateChecker.instance.check(progress);
   runApp(HanziStepsApp(progress: progress, navigatorKey: navigator));
 }
 

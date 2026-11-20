@@ -52,13 +52,27 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **Pet panda**: grows from a baby panda to a panda master as you earn XP. It's happy when you reach your
   daily goal and gets hungry (and then sad) when reviews pile up. The "Feed" button starts a review.
   Tap its name to rename it.
-- **Textbook (课本)**: 18 original lessons laid out like a Chinese school textbook, in two books (about
-  HSK 1 and HSK 2) of three units each. Each lesson is a rhyme (儿歌), a character list (识字) or a short
+- **Textbook (课本)**: 27 original lessons laid out like a Chinese school textbook, in three books (about
+  HSK 1, HSK 2 and HSK 3) of three units each. Each lesson is a rhyme (儿歌), a character list (识字) or a short
   text (课文) with pinyin above every character, new characters in 田字格 squares (with radical, stroke
   count, words made with them, and a box to write them), a "Say it" task and exercises. Each unit ends
   with a review corner (语文园地): a radical family, "my discovery" notes like 日 + 月 = 明, and a
   famous Tang poem or traditional saying to learn by heart.
-- **Badges**: 33 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Daily challenge**: one small task each day on the home screen ("finish a dialogue", "get 8 counting
+  words right"…). Finish it and claim 20 bonus XP.
+- **Counting words (量词)**: what 个, 本, 张, 件, 只, 杯, 条, 辆, 双, 位 and the rest count, and a drill
+  ("两 ＿ 书", "which one can 辆 count?") that asks the ones you miss more often.
+- **Write from memory (默写)**: see a word with one character missing, its pinyin and meaning, and write the
+  character with no outline to trace, like a school dictation test.
+- **Idiom stories (成语故事)**: 8 famous four-character sayings such as 画蛇添足 and 亡羊补牢, each with a short
+  story in simple Chinese, emoji pictures, tap-a-word meanings and a 4-question quiz.
+- **Radicals (部首)**: 24 common character parts (氵, 口, 女, 扌…) with their names, what they mean and the
+  characters that use them, plus a quiz.
+- **Weekly report**: XP, minutes in the app, new words and days practised this week next to last week,
+  your weakest tone and your trickiest words. It pops up on the home screen once a week.
+- **Update check**: once a day the app looks on GitHub for a newer release and shows a "Get it" banner.
+  You can turn this off in Settings, or check by hand there.
+- **Badges**: 38 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
 - **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
   tone pairs and words you miss most (with a button to practise those words), and your badges.
 - **Quick games**: Speed match (match characters and meanings against the clock) and Falling
@@ -178,6 +192,13 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Culture notes | `lib/data/culture.dart`, `lib/screens/culture_screen.dart` |
 | Pet panda | `lib/logic/panda.dart`, `lib/widgets/panda.dart` |
 | Textbook lessons and review corners | `lib/data/textbook.dart`, `lib/logic/textbook.dart`, `lib/screens/textbook_screen.dart` |
+| Daily challenge | `lib/logic/daily_challenge.dart` (the card is in `home_screen.dart`) |
+| Counting words | `lib/data/measure_words.dart`, `lib/logic/measure_drill.dart`, `lib/screens/measure_words_screen.dart` |
+| Write from memory | `lib/screens/memory_writing_screen.dart` |
+| Idiom stories | `lib/data/idioms.dart`, `lib/logic/idioms.dart`, `lib/screens/idioms_screen.dart` |
+| Radicals | `lib/data/radicals.dart`, `lib/logic/radical_quiz.dart`, `lib/screens/radicals_screen.dart` |
+| Weekly report and time in the app | `lib/logic/weekly_report.dart`, `lib/screens/weekly_report_screen.dart` |
+| App version and update check | `lib/logic/version.dart` (keep `appVersion` the same as `pubspec.yaml`) |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
 | Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
@@ -205,6 +226,9 @@ that typed pinyin is marked right or wrong correctly, and plays through each gam
 are written and said, that look-alike examples and culture notes fit their lessons, the placement test,
 word search, My words and the panda's moods. For the textbook, it checks that the pinyin lines up
 with every character, that every word can be looked up, and plays through a lesson's exercises.
+It also checks that counting-word questions have exactly one right answer, that idiom stories line up and
+their words can be looked up, the daily challenge counting and bonus, the version comparison for the
+update check, and the weekly report's numbers.
 
 ## Not in this version yet
 

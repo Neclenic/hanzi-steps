@@ -58,6 +58,8 @@ class Progress extends ChangeNotifier {
   Future<void> _applyReview(Map<String, bool> results) async {
     final r = _review;
     final today = _todayNumber;
+    final fresh = results.keys.where((w) => !r.containsKey(w)).length;
+    if (fresh > 0) await _addToDay('wordDays', fresh);
     results.forEach((word, right) {
       final box = r[word]?[0] ?? 0;
       final next = right ? (box + 1).clamp(1, 6) : 1;
@@ -134,6 +136,7 @@ class Progress extends ChangeNotifier {
     if (l.kind != LessonKind.practice) {
       await _prefs.setStringList('completed', {...completed, l.id}.toList());
     }
+    await _count(l.kind == LessonKind.practice ? 'practiceRuns' : 'lessonRuns');
     await _addXp(earnedXp);
     notifyListeners();
   }
@@ -241,11 +244,106 @@ class Progress extends ChangeNotifier {
   int count(String name) => (_json('counters')[name] as num?)?.toInt() ?? 0;
 
   Future<void> bump(String name, [int n = 1]) async {
+    await _count(name, n);
+    notifyListeners();
+  }
+
+  Future<void> _count(String name, [int n = 1]) async {
     final c = _json('counters');
     c[name] = ((c[name] as num?) ?? 0) + n;
     await _prefs.setString('counters', jsonEncode(c));
+  }
+
+  /// Every counter at once (used to measure today's challenge).
+  Map<String, int> get counters => _json('counters').map((k, v) => MapEntry(k, (v as num).toInt()));
+
+  // ---- Time and words per day (for the weekly report) ----
+
+  Map<String, int> _dayMap(String key) => _json(key).map((k, v) => MapEntry(k, (v as num).toInt()));
+
+  Future<void> _addToDay(String key, int n) async {
+    final d = _dayMap(key), today = _key(_today());
+    d[today] = (d[today] ?? 0) + n;
+    final keys = d.keys.toList()..sort();
+    for (final k in keys.take(keys.length > 60 ? keys.length - 60 : 0)) {
+      d.remove(k);
+    }
+    await _prefs.setString(key, jsonEncode(d));
+  }
+
+  /// Adds time spent in the app today.
+  Future<void> addSeconds(int s) => _addToDay('timeDays', s);
+
+  /// Sums a per-day map over [days] days, ending [endDaysAgo] days ago (0 = today).
+  int _sumDays(Map<String, int> m, int days, int endDaysAgo) {
+    final t = _today();
+    var n = 0;
+    for (var i = endDaysAgo; i < endDaysAgo + days; i++) {
+      n += m[_key(t.subtract(Duration(days: i)))] ?? 0;
+    }
+    return n;
+  }
+
+  /// Seconds in the app over the 7 days ending [weeksAgo] weeks ago.
+  int weekSeconds([int weeksAgo = 0]) => _sumDays(_dayMap('timeDays'), 7, weeksAgo * 7);
+
+  /// New words learned over the 7 days ending [weeksAgo] weeks ago.
+  int weekNewWords([int weeksAgo = 0]) => _sumDays(_dayMap('wordDays'), 7, weeksAgo * 7);
+
+  /// XP over the 7 days ending [weeksAgo] weeks ago.
+  int weekXp([int weeksAgo = 0]) => _sumDays(_days, 7, weeksAgo * 7);
+
+  /// Days with some XP in the 7 days ending [weeksAgo] weeks ago.
+  int weekActiveDays([int weeksAgo = 0]) {
+    final d = _days, t = _today();
+    var n = 0;
+    for (var i = weeksAgo * 7; i < weeksAgo * 7 + 7; i++) {
+      if ((d[_key(t.subtract(Duration(days: i)))] ?? 0) > 0) n++;
+    }
+    return n;
+  }
+
+  /// The day the weekly report was last opened, as "2026-11-20".
+  String? get reportSeen => _prefs.getString('reportSeen');
+  Future<void> setReportSeen() async {
+    await _prefs.setString('reportSeen', _key(_today()));
     notifyListeners();
   }
+
+  // ---- Daily challenge ----
+
+  /// Today's challenge as saved: {day, id, base, claimed}.
+  Map<String, dynamic> get challengeState => _json('challenge');
+  Future<void> setChallengeState(Map<String, dynamic> v) async {
+    await _prefs.setString('challenge', jsonEncode(v));
+    notifyListeners();
+  }
+
+  /// Today's date key, as "2026-11-20".
+  static String get todayKey => _key(_today());
+
+  // ---- Measure words, writing from memory, idioms ----
+
+  Map<String, (int, int)> get measureStats => _rightTotal('measureStats');
+  Future<void> recordMeasure(String measure, bool right) async {
+    await _addRightTotal('measureStats', measure, right);
+    if (right) await _count('measureRight');
+    notifyListeners();
+  }
+
+  Set<String> get idiomsRead => (_prefs.getStringList('idiomsRead') ?? const []).toSet();
+  Future<void> finishIdiom(String id, int earnedXp) async {
+    await _prefs.setStringList('idiomsRead', {...idiomsRead, id}.toList());
+    await _count('idiomRuns');
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
+
+  // ---- Update check ----
+
+  /// When the app last looked for a new version, as "2026-11-20".
+  String? get updateChecked => _prefs.getString('updateChecked');
+  Future<void> setUpdateChecked() => _prefs.setString('updateChecked', _key(_today()));
 
   Map<String, (int, int)> _rightTotal(String key) => _json(key).map((k, v) {
         final l = (v as List).cast<num>();
@@ -295,6 +393,7 @@ class Progress extends ChangeNotifier {
 
   Future<void> finishDialogue(String id, int earnedXp) async {
     await _prefs.setStringList('dialoguesDone', {...dialoguesDone, id}.toList());
+    await _count('dialogueRuns');
     await _addXp(earnedXp);
     notifyListeners();
   }
@@ -305,6 +404,7 @@ class Progress extends ChangeNotifier {
   Future<bool> finishGame(String game, int score, int earnedXp) async {
     final best = score > gameBest(game);
     if (best) await _prefs.setInt('gameBest_$game', score);
+    await _count('gameRuns');
     await _addXp(earnedXp);
     notifyListeners();
     return best;
@@ -418,6 +518,7 @@ class Progress extends ChangeNotifier {
 
   Future<void> finishStory(String id, int earnedXp) async {
     await _prefs.setStringList('storiesRead', {...storiesRead, id}.toList());
+    await _count('storyRuns');
     await _addXp(earnedXp);
     notifyListeners();
   }
@@ -427,6 +528,7 @@ class Progress extends ChangeNotifier {
 
   Future<void> finishTextbook(String id, int earnedXp) async {
     await _prefs.setStringList('tbDone', {...textbookDone, id}.toList());
+    await _count('textbookRuns');
     await _addXp(earnedXp);
     notifyListeners();
   }
@@ -434,7 +536,8 @@ class Progress extends ChangeNotifier {
   Future<void> reset() async {
     for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examBest2', 'examBest3', 'examsTaken', 'examsPassed', 'examFullMarks',
       'counters', 'toneStats', 'pairStats', 'dialoguesDone', 'badgesSeen', 'bestStreak', 'goalDays',
-      'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName', 'tbDone']) {
+      'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName', 'tbDone',
+      'timeDays', 'wordDays', 'reportSeen', 'challenge', 'measureStats', 'idiomsRead']) {
       await _prefs.remove(k);
     }
     notifyListeners();
