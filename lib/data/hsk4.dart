@@ -1,0 +1,338 @@
+// HSK 4: about 600 more words, based on the classic HSK 2.0 level 4 list, in themed
+// units. This is part 1. Every example sentence is original and only uses words taught
+// before it (HSK 1 to 3 included). The tests check this.
+
+import 'course.dart';
+
+const _v = LessonKind.vocab;
+
+const hsk4Units = <Unit>[
+  Unit('Character', 'Describe what people are really like', 0xFF5C6BC0, tag: 'HSK 4 · Unit 1', level: 4, [
+    Lesson(id: 'h4-char-1', title: 'Personality', subtitle: '性格 · 活泼 · 幽默', kind: _v, words: [
+      W('性格', 'xìnggé', 'personality'),
+      W('活泼', 'huópo', 'lively'),
+      W('幽默', 'yōumò', 'humorous, funny'),
+      W('诚实', 'chéngshí', 'honest'),
+      W('勇敢', 'yǒnggǎn', 'brave'),
+      W('骄傲', 'jiāo\'ào', 'proud; arrogant'),
+      W('粗心', 'cūxīn', 'careless'),
+    ], sentences: [
+      S(['他', '的', '性格', '很', '活泼'], 'tā de xìnggé hěn huópo', 'He has a lively personality.'),
+      S(['我', '的', '老师', '非常', '幽默'], 'wǒ de lǎoshī fēicháng yōumò', 'My teacher is very funny.'),
+      S(['你', '太', '粗心', '了'], 'nǐ tài cūxīn le', "You're too careless."),
+    ]),
+    Lesson(id: 'h4-char-2', title: 'Good manners', subtitle: '耐心 · 马虎 · 礼貌', kind: _v, words: [
+      W('耐心', 'nàixīn', 'patient; patience'),
+      W('马虎', 'mǎhu', 'sloppy, careless'),
+      W('礼貌', 'lǐmào', 'polite; manners'),
+      W('友好', 'yǒuhǎo', 'friendly'),
+      W('浪漫', 'làngmàn', 'romantic'),
+      W('冷静', 'lěngjìng', 'calm'),
+      W('积极', 'jījí', 'positive, active'),
+    ], sentences: [
+      S(['对', '孩子', '要', '有', '耐心'], 'duì háizi yào yǒu nàixīn', 'You need to be patient with children.'),
+      S(['他', '是', '一', '个', '很', '有', '礼貌', '的', '孩子'], 'tā shì yí ge hěn yǒu lǐmào de háizi', 'He is a very polite child.'),
+      S(['你', '要', '冷静'], 'nǐ yào lěngjìng', 'You need to stay calm.'),
+    ]),
+    Lesson(id: 'h4-char-3', title: 'Family and friends', subtitle: '父亲 · 母亲 · 孙子', kind: _v, words: [
+      W('父亲', 'fùqīn', 'father'),
+      W('母亲', 'mǔqīn', 'mother'),
+      W('孙子', 'sūnzi', 'grandson'),
+      W('亲戚', 'qīnqi', 'relative'),
+      W('夫妻', 'fūqī', 'husband and wife'),
+      W('友谊', 'yǒuyì', 'friendship'),
+      W('小伙子', 'xiǎohuǒzi', 'young man'),
+    ], sentences: [
+      S(['我', '父亲', '是', '医生'], 'wǒ fùqīn shì yīshēng', 'My father is a doctor.'),
+      S(['我们', '的', '友谊', '很', '重要'], 'wǒmen de yǒuyì hěn zhòngyào', 'Our friendship is important.'),
+      S(['那', '个', '小伙子', '很', '热情'], 'nà ge xiǎohuǒzi hěn rèqíng', 'That young man is very friendly.'),
+    ]),
+  ]),
+  Unit('Strong feelings', 'Nervous, moved, sorry, proud', 0xFFD81B60, tag: 'HSK 4 · Unit 2', level: 4, [
+    Lesson(id: 'h4-emo-1', title: 'Up and down', subtitle: '激动 · 感动 · 失望', kind: _v, words: [
+      W('激动', 'jīdòng', 'excited, thrilled'),
+      W('感动', 'gǎndòng', 'moved, touched'),
+      W('失望', 'shīwàng', 'disappointed'),
+      W('伤心', 'shāngxīn', 'heartbroken, sad'),
+      W('紧张', 'jǐnzhāng', 'nervous'),
+      W('害羞', 'hàixiū', 'shy'),
+      W('无聊', 'wúliáo', 'bored; boring'),
+    ], sentences: [
+      S(['考试', '以前', '我', '很', '紧张'], 'kǎoshì yǐqián wǒ hěn jǐnzhāng', 'I was nervous before the exam.'),
+      S(['这', '个', '电影', '真', '无聊'], 'zhège diànyǐng zhēn wúliáo', 'This film is really boring.'),
+      S(['她', '很', '失望'], 'tā hěn shīwàng', 'She is very disappointed.'),
+    ]),
+    Lesson(id: 'h4-emo-2', title: 'Sorry and surprised', subtitle: '烦恼 · 后悔 · 抱歉', kind: _v, words: [
+      W('烦恼', 'fánnǎo', 'worries; worried'),
+      W('后悔', 'hòuhuǐ', 'to regret'),
+      W('抱歉', 'bàoqiàn', 'sorry (more formal than 对不起)'),
+      W('吃惊', 'chījīng', 'surprised, shocked'),
+      W('兴奋', 'xīngfèn', 'excited'),
+      W('得意', 'déyì', 'pleased with oneself'),
+      W('感觉', 'gǎnjué', 'feeling; to feel'),
+    ], sentences: [
+      S(['我', '很', '后悔'], 'wǒ hěn hòuhuǐ', 'I really regret it.'),
+      S(['抱歉', '我', '迟到', '了'], 'bàoqiàn, wǒ chídào le', "Sorry, I'm late."),
+      S(['你', '感觉', '怎么样'], 'nǐ gǎnjué zěnmeyàng', 'How do you feel?'),
+    ]),
+    Lesson(id: 'h4-emo-3', title: 'How we treat others', subtitle: '羡慕 · 讨厌 · 原谅', kind: _v, words: [
+      W('羡慕', 'xiànmù', 'to envy, to admire'),
+      W('讨厌', 'tǎoyàn', 'to dislike; annoying'),
+      W('原谅', 'yuánliàng', 'to forgive'),
+      W('尊重', 'zūnzhòng', 'to respect'),
+      W('支持', 'zhīchí', 'to support'),
+      W('鼓励', 'gǔlì', 'to encourage'),
+      W('感谢', 'gǎnxiè', 'to thank'),
+    ], sentences: [
+      S(['我', '很', '羡慕', '你'], 'wǒ hěn xiànmù nǐ', 'I really envy you.'),
+      S(['请', '原谅', '我'], 'qǐng yuánliàng wǒ', 'Please forgive me.'),
+      S(['谢谢', '你', '的', '支持'], 'xièxie nǐ de zhīchí', 'Thank you for your support.'),
+    ]),
+  ]),
+  Unit('Talking it over', 'Opinions, suggestions and how sure you are', 0xFF00897B, tag: 'HSK 4 · Unit 3', level: 4, [
+    Lesson(id: 'h4-talk-1', title: 'Opinions', subtitle: '意见 · 看法 · 观点', kind: _v, words: [
+      W('意见', 'yìjiàn', 'opinion; complaint'),
+      W('看法', 'kànfǎ', 'view, way of seeing'),
+      W('观点', 'guāndiǎn', 'point of view'),
+      W('讨论', 'tǎolùn', 'to discuss'),
+      W('商量', 'shāngliang', 'to talk over'),
+      W('解释', 'jiěshì', 'to explain'),
+      W('建议', 'jiànyì', 'to suggest; suggestion'),
+    ], sentences: [
+      S(['你', '有', '什么', '意见'], 'nǐ yǒu shénme yìjiàn', 'What do you think?'),
+      S(['我们', '商量', '一下', '吧'], 'wǒmen shāngliang yíxià ba', "Let's talk it over."),
+      S(['你', '能', '解释', '一下', '吗'], 'nǐ néng jiěshì yíxià ma', 'Could you explain?'),
+    ]),
+    Lesson(id: 'h4-talk-2', title: 'Chatting', subtitle: '表示 · 提醒 · 批评', kind: _v, words: [
+      W('表示', 'biǎoshì', 'to express, to show'),
+      W('提醒', 'tíxǐng', 'to remind'),
+      W('批评', 'pīpíng', 'to criticise'),
+      W('表扬', 'biǎoyáng', 'to praise'),
+      W('回忆', 'huíyì', 'memory; to recall'),
+      W('聊天', 'liáotiān', 'to chat'),
+      W('交流', 'jiāoliú', 'to communicate, to exchange'),
+    ], sentences: [
+      S(['我们', '经常', '一起', '聊天'], 'wǒmen jīngcháng yìqǐ liáotiān', 'We often chat together.'),
+      S(['老师', '表扬', '了', '他'], 'lǎoshī biǎoyáng le tā', 'The teacher praised him.'),
+      S(['请', '提醒', '我', '明天', '的', '会议'], 'qǐng tíxǐng wǒ míngtiān de huìyì', "Please remind me about tomorrow's meeting."),
+    ]),
+    Lesson(id: 'h4-talk-3', title: 'How sure?', subtitle: '肯定 · 确实 · 也许', kind: _v, words: [
+      W('肯定', 'kěndìng', 'definitely; sure'),
+      W('确实', 'quèshí', 'really, indeed'),
+      W('也许', 'yěxǔ', 'perhaps'),
+      W('大概', 'dàgài', 'probably; about'),
+      W('好像', 'hǎoxiàng', 'to seem, as if'),
+      W('估计', 'gūjì', 'to reckon, to estimate'),
+      W('怀疑', 'huáiyí', 'to doubt, to suspect'),
+    ], sentences: [
+      S(['他', '肯定', '会', '来'], 'tā kěndìng huì lái', "He'll definitely come."),
+      S(['明天', '也许', '会', '下雨'], 'míngtiān yěxǔ huì xiàyǔ', 'It may rain tomorrow.'),
+      S(['他', '好像', '生病', '了'], 'tā hǎoxiàng shēngbìng le', 'He seems to be ill.'),
+    ]),
+  ]),
+  Unit('Jobs', 'Professions, job hunting and the daily grind', 0xFF6D4C41, tag: 'HSK 4 · Unit 4', level: 4, [
+    Lesson(id: 'h4-job-1', title: 'What do they do?', subtitle: '职业 · 律师 · 警察', kind: _v, words: [
+      W('职业', 'zhíyè', 'occupation, profession'),
+      W('律师', 'lǜshī', 'lawyer'),
+      W('警察', 'jǐngchá', 'police officer'),
+      W('记者', 'jìzhě', 'journalist'),
+      W('演员', 'yǎnyuán', 'actor, actress'),
+      W('导游', 'dǎoyóu', 'tour guide'),
+      W('售货员', 'shòuhuòyuán', 'shop assistant'),
+    ], sentences: [
+      S(['我', '姐姐', '是', '律师'], 'wǒ jiějie shì lǜshī', 'My older sister is a lawyer.'),
+      S(['他', '的', '职业', '是', '什么'], 'tā de zhíyè shì shénme', 'What does he do for a living?'),
+      S(['这', '位', '导游', '很', '热情'], 'zhè wèi dǎoyóu hěn rèqíng', 'This tour guide is very warm.'),
+    ]),
+    Lesson(id: 'h4-job-2', title: 'Finding a job', subtitle: '应聘 · 招聘 · 面试', kind: _v, words: [
+      W('应聘', 'yìngpìn', 'to apply for a job'),
+      W('招聘', 'zhāopìn', 'to recruit, to hire'),
+      W('面试', 'miànshì', 'job interview'),
+      W('工资', 'gōngzī', 'wages, salary'),
+      W('奖金', 'jiǎngjīn', 'bonus, prize money'),
+      W('收入', 'shōurù', 'income'),
+      W('经验', 'jīngyàn', 'experience'),
+    ], sentences: [
+      S(['明天', '我', '去', '面试'], 'míngtiān wǒ qù miànshì', "I'm going to a job interview tomorrow."),
+      S(['他', '的', '工资', '很', '高'], 'tā de gōngzī hěn gāo', 'His salary is high.'),
+      S(['你', '有', '工作', '经验', '吗'], 'nǐ yǒu gōngzuò jīngyàn ma', 'Do you have work experience?'),
+    ]),
+    Lesson(id: 'h4-job-3', title: 'At work', subtitle: '负责 · 任务 · 计划', kind: _v, words: [
+      W('负责', 'fùzé', 'to be in charge of; responsible'),
+      W('任务', 'rènwu', 'task'),
+      W('计划', 'jìhuà', 'plan; to plan'),
+      W('安排', 'ānpái', 'to arrange'),
+      W('加班', 'jiābān', 'to work overtime'),
+      W('辞职', 'cízhí', 'to quit a job'),
+      W('压力', 'yālì', 'pressure, stress'),
+    ], sentences: [
+      S(['我', '今天', '要', '加班'], 'wǒ jīntiān yào jiābān', 'I have to work late today.'),
+      S(['他', '的', '工作', '压力', '很', '大'], 'tā de gōngzuò yālì hěn dà', "He's under a lot of pressure at work."),
+      S(['这', '件', '事情', '谁', '负责'], 'zhè jiàn shìqing shéi fùzé', "Who's in charge of this?"),
+    ]),
+  ]),
+  Unit('Higher studies', 'University, translating and getting it right', 0xFF1E88E5, tag: 'HSK 4 · Unit 5', level: 4, [
+    Lesson(id: 'h4-uni-1', title: 'University', subtitle: '专业 · 硕士 · 博士', kind: _v, words: [
+      W('专业', 'zhuānyè', 'major, subject; professional'),
+      W('硕士', 'shuòshì', "master's degree"),
+      W('博士', 'bóshì', 'doctorate, PhD'),
+      W('研究', 'yánjiū', 'to research; research'),
+      W('知识', 'zhīshi', 'knowledge'),
+      W('教授', 'jiàoshòu', 'professor'),
+      W('留学', 'liúxué', 'to study abroad'),
+    ], sentences: [
+      S(['你', '的', '专业', '是', '什么'], 'nǐ de zhuānyè shì shénme', 'What is your major?'),
+      S(['她', '想', '去', '中国', '留学'], 'tā xiǎng qù Zhōngguó liúxué', 'She wants to study in China.'),
+      S(['我', '哥哥', '在', '读', '博士'], 'wǒ gēge zài dú bóshì', 'My older brother is doing a PhD.'),
+    ]),
+    Lesson(id: 'h4-uni-2', title: 'Language work', subtitle: '语法 · 翻译 · 阅读', kind: _v, words: [
+      W('语法', 'yǔfǎ', 'grammar'),
+      W('翻译', 'fānyì', 'to translate; translator'),
+      W('阅读', 'yuèdú', 'to read; reading'),
+      W('内容', 'nèiróng', 'content'),
+      W('答案', 'dá\'àn', 'answer (to a question)'),
+      W('及格', 'jígé', 'to pass (a test)'),
+      W('考虑', 'kǎolǜ', 'to think over, to consider'),
+    ], sentences: [
+      S(['这', '个', '句子', '怎么', '翻译'], 'zhège jùzi zěnme fānyì', 'How do you translate this sentence?'),
+      S(['我', '考试', '及格', '了'], 'wǒ kǎoshì jígé le', 'I passed the exam.'),
+      S(['让', '我', '考虑', '一下'], 'ràng wǒ kǎolǜ yíxià', 'Let me think about it.'),
+    ]),
+    Lesson(id: 'h4-uni-3', title: 'Getting it right', subtitle: '准确 · 正确 · 详细', kind: _v, words: [
+      W('准确', 'zhǔnquè', 'accurate, exact'),
+      W('正确', 'zhèngquè', 'correct'),
+      W('详细', 'xiángxì', 'detailed'),
+      W('复杂', 'fùzá', 'complicated'),
+      W('困难', 'kùnnan', 'difficulty; difficult'),
+      W('基础', 'jīchǔ', 'foundation, basis'),
+      W('能力', 'nénglì', 'ability'),
+    ], sentences: [
+      S(['你', '的', '回答', '很', '正确'], 'nǐ de huídá hěn zhèngquè', 'Your answer is correct.'),
+      S(['这', '个', '问题', '太', '复杂', '了'], 'zhège wèntí tài fùzá le', 'This problem is too complicated.'),
+      S(['他', '的', '汉语', '基础', '很', '好'], 'tā de Hànyǔ jīchǔ hěn hǎo', 'His Chinese has a solid foundation.'),
+    ]),
+  ]),
+  Unit('Body and health', 'Sleep, staying fit and feeling well', 0xFF43A047, tag: 'HSK 4 · Unit 6', level: 4, [
+    Lesson(id: 'h4-body-1', title: 'Not feeling great', subtitle: '心情 · 睡着 · 咳嗽', kind: _v, words: [
+      W('心情', 'xīnqíng', 'mood'),
+      W('睡着', 'shuìzháo', 'to fall asleep'),
+      W('咳嗽', 'késou', 'to cough'),
+      W('打针', 'dǎzhēn', 'to have an injection'),
+      W('减肥', 'jiǎnféi', 'to lose weight'),
+      W('皮肤', 'pífū', 'skin'),
+      W('牙膏', 'yágāo', 'toothpaste'),
+    ], sentences: [
+      S(['今天', '我', '心情', '很', '好'], 'jīntiān wǒ xīnqíng hěn hǎo', "I'm in a good mood today."),
+      S(['我', '昨天', '晚上', '没有', '睡着'], 'wǒ zuótiān wǎnshang méiyǒu shuìzháo', "I couldn't get to sleep last night."),
+      S(['我', '想', '减肥'], 'wǒ xiǎng jiǎnféi', 'I want to lose weight.'),
+    ]),
+    Lesson(id: 'h4-body-2', title: 'Staying safe', subtitle: '散步 · 加油 · 保护', kind: _v, words: [
+      W('散步', 'sànbù', 'to go for a walk'),
+      W('加油', 'jiāyóu', 'come on! (cheering); to refuel'),
+      W('保护', 'bǎohù', 'to protect'),
+      W('危险', 'wēixiǎn', 'dangerous; danger'),
+      W('安全', 'ānquán', 'safe; safety'),
+      W('受到', 'shòudào', 'to receive, to get'),
+      W('汗', 'hàn', 'sweat'),
+    ], sentences: [
+      S(['我们', '去', '公园', '散步', '吧'], 'wǒmen qù gōngyuán sànbù ba', "Let's go for a walk in the park."),
+      S(['加油'], 'jiāyóu', 'Come on! You can do it!'),
+      S(['这儿', '很', '危险'], 'zhèr hěn wēixiǎn', "It's dangerous here."),
+    ]),
+    Lesson(id: 'h4-body-3', title: 'Strong and tired', subtitle: '营养 · 力气 · 肚子', kind: _v, words: [
+      W('营养', 'yíngyǎng', 'nutrition'),
+      W('力气', 'lìqi', 'physical strength'),
+      W('肚子', 'dùzi', 'belly, stomach'),
+      W('胳膊', 'gēbo', 'arm'),
+      W('厉害', 'lìhai', 'amazing; severe'),
+      W('精神', 'jīngshen', 'energy, vigour'),
+      W('困', 'kùn', 'sleepy'),
+    ], sentences: [
+      S(['我', '肚子', '疼'], 'wǒ dùzi téng', 'I have a stomach ache.'),
+      S(['你', '今天', '很', '有', '精神'], 'nǐ jīntiān hěn yǒu jīngshen', 'You look full of energy today.'),
+      S(['我', '太', '困', '了'], 'wǒ tài kùn le', "I'm so sleepy."),
+    ]),
+  ]),
+  Unit('Tastes', 'Flavours, dishes and eating out', 0xFFF4511E, tag: 'HSK 4 · Unit 7', level: 4, [
+    Lesson(id: 'h4-taste-1', title: 'Sour, sweet, bitter, spicy', subtitle: '味道 · 酸 · 苦', kind: _v, words: [
+      W('味道', 'wèidao', 'taste, flavour'),
+      W('酸', 'suān', 'sour'),
+      W('苦', 'kǔ', 'bitter'),
+      W('辣', 'là', 'spicy hot'),
+      W('咸', 'xián', 'salty'),
+      W('香', 'xiāng', 'fragrant, smells good'),
+      W('饺子', 'jiǎozi', 'dumplings'),
+    ], sentences: [
+      S(['这', '个', '菜', '味道', '很', '好'], 'zhège cài wèidao hěn hǎo', 'This dish tastes great.'),
+      S(['我', '不', '吃', '辣', '的'], 'wǒ bù chī là de', "I don't eat spicy food."),
+      S(['我们', '一起', '包', '饺子', '吧'], 'wǒmen yìqǐ bāo jiǎozi ba', "Let's make dumplings together."),
+    ]),
+    Lesson(id: 'h4-taste-2', title: 'Favourite foods', subtitle: '包子 · 饼干 · 巧克力', kind: _v, words: [
+      W('包子', 'bāozi', 'steamed stuffed bun'),
+      W('饼干', 'bǐnggān', 'biscuit, cracker'),
+      W('巧克力', 'qiǎokèlì', 'chocolate'),
+      W('西红柿', 'xīhóngshì', 'tomato'),
+      W('盐', 'yán', 'salt'),
+      W('汤', 'tāng', 'soup'),
+      W('烤鸭', 'kǎoyā', 'roast duck'),
+    ], sentences: [
+      S(['汤', '太', '咸', '了'], 'tāng tài xián le', 'The soup is too salty.'),
+      S(['我', '很', '喜欢', '吃', '巧克力'], 'wǒ hěn xǐhuan chī qiǎokèlì', 'I really like chocolate.'),
+      S(['北京', '烤鸭', '非常', '有名'], 'Běijīng kǎoyā fēicháng yǒumíng', 'Peking duck is very famous.'),
+    ]),
+    Lesson(id: 'h4-taste-3', title: 'Eating out', subtitle: '餐厅 · 打折 · 免费', kind: _v, words: [
+      W('餐厅', 'cāntīng', 'restaurant, dining hall (bigger than 饭馆)'),
+      W('打折', 'dǎzhé', 'to give a discount'),
+      W('免费', 'miǎnfèi', 'free (of charge)'),
+      W('付款', 'fùkuǎn', 'to pay'),
+      W('份', 'fèn', 'portion, copy (counting word)'),
+      W('勺子', 'sháozi', 'spoon'),
+      W('刀', 'dāo', 'knife'),
+    ], sentences: [
+      S(['这', '家', '餐厅', '在', '打折'], 'zhè jiā cāntīng zài dǎzhé', 'This restaurant has a discount on.'),
+      S(['饮料', '是', '免费', '的'], 'yǐnliào shì miǎnfèi de', 'Drinks are free.'),
+      S(['请', '给', '我', '一', '个', '勺子'], 'qǐng gěi wǒ yí ge sháozi', 'Please give me a spoon.'),
+    ]),
+  ]),
+  Unit('Smart shopping', 'Prices, quality and what suits you', 0xFF8E24AA, tag: 'HSK 4 · Unit 8', level: 4, [
+    Lesson(id: 'h4-shop-1', title: 'Price and quality', subtitle: '价格 · 质量 · 购物', kind: _v, words: [
+      W('价格', 'jiàgé', 'price'),
+      W('质量', 'zhìliàng', 'quality'),
+      W('购物', 'gòuwù', 'to go shopping'),
+      W('顾客', 'gùkè', 'customer'),
+      W('现金', 'xiànjīn', 'cash'),
+      W('零钱', 'língqián', 'small change'),
+      W('稍微', 'shāowēi', 'slightly, a little'),
+    ], sentences: [
+      S(['这', '种', '手机', '价格', '不', '贵'], 'zhè zhǒng shǒujī jiàgé bú guì', "This kind of phone isn't expensive."),
+      S(['这', '件', '衣服', '质量', '很', '好'], 'zhè jiàn yīfu zhìliàng hěn hǎo', 'These clothes are good quality.'),
+      S(['你', '有', '零钱', '吗'], 'nǐ yǒu língqián ma', 'Do you have small change?'),
+    ]),
+    Lesson(id: 'h4-shop-2', title: 'Everyday things', subtitle: '袜子 · 牛仔裤 · 毛巾', kind: _v, words: [
+      W('袜子', 'wàzi', 'socks'),
+      W('牛仔裤', 'niúzǎikù', 'jeans'),
+      W('毛巾', 'máojīn', 'towel'),
+      W('塑料袋', 'sùliàodài', 'plastic bag'),
+      W('镜子', 'jìngzi', 'mirror'),
+      W('钥匙', 'yàoshi', 'key'),
+      W('沙发', 'shāfā', 'sofa'),
+    ], sentences: [
+      S(['我', '的', '钥匙', '在', '哪儿'], 'wǒ de yàoshi zài nǎr', 'Where are my keys?'),
+      S(['我', '要', '买', '一', '条', '牛仔裤'], 'wǒ yào mǎi yì tiáo niúzǎikù', 'I want to buy a pair of jeans.'),
+      S(['请', '给', '我', '一', '个', '塑料袋'], 'qǐng gěi wǒ yí ge sùliàodài', 'A plastic bag, please.'),
+    ]),
+    Lesson(id: 'h4-shop-3', title: 'Does it suit me?', subtitle: '合适 · 适合 · 流行', kind: _v, words: [
+      W('合适', 'héshì', 'suitable, the right size'),
+      W('适合', 'shìhé', 'to suit, to fit'),
+      W('流行', 'liúxíng', 'popular, in fashion'),
+      W('普遍', 'pǔbiàn', 'common, widespread'),
+      W('正式', 'zhèngshì', 'formal, official'),
+      W('富', 'fù', 'rich'),
+      W('穷', 'qióng', 'poor'),
+    ], sentences: [
+      S(['这', '件', '衣服', '很', '适合', '你'], 'zhè jiàn yīfu hěn shìhé nǐ', 'These clothes really suit you.'),
+      S(['这', '种', '鞋', '现在', '很', '流行'], 'zhè zhǒng xié xiànzài hěn liúxíng', 'These shoes are in fashion now.'),
+      S(['这', '双', '鞋', '合适', '吗'], 'zhè shuāng xié héshì ma', 'Do these shoes fit?'),
+    ]),
+  ]),
+];

@@ -32,6 +32,7 @@ class GrammarScreen extends StatelessWidget {
             Text('Each tip also appears in its lesson. A tick means you have done that lesson.',
                 style: TextStyle(color: scheme.onSurfaceVariant)),
             for (final level in levels) ...[
+              if (grammarTips.any((t) => _where(t.lessonId)?.$1.level == level))
               Padding(
                 padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
                 child: Text('HSK $level', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

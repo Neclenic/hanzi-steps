@@ -46,6 +46,7 @@ class DialoguesScreen extends StatelessWidget {
                   'and say it yourself if you like.',
                   style: TextStyle(color: scheme.onSurfaceVariant)),
               for (final level in levels) ...[
+                if (dialogues.any((d) => dialogueLevel(d) == level))
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 20, 4, 8),
                   child: Text('HSK $level', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),

@@ -3,6 +3,7 @@
 
 import 'hsk2.dart';
 import 'hsk3.dart';
+import 'hsk4.dart';
 
 class Word {
   final String hanzi; // Chinese characters, e.g. 你好
@@ -471,10 +472,11 @@ const course = <Unit>[
 
   ...hsk2Units,
   ...hsk3Units,
+  ...hsk4Units,
 ];
 
 /// The courses, one per HSK level.
-const levels = [1, 2, 3];
+const levels = [1, 2, 3, 4];
 
 /// The words on the official list of one HSK level (not the extras), for counting.
 List<Word> hskWordsOf(int level) => [

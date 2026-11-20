@@ -10,6 +10,7 @@ import '../logic/settings.dart';
 import '../data/dialogues.dart';
 import '../data/grammar.dart';
 import '../logic/badges.dart';
+import '../data/exam.dart';
 import '../logic/exam.dart';
 import '../data/culture.dart';
 import '../data/look_alikes.dart';
@@ -285,6 +286,7 @@ class HomeScreen extends StatelessWidget {
                         subtitle: 'Speed match, falling characters',
                         onTap: () => _push(context, GamesScreen(progress: progress)),
                       ),
+                      if (examSets.containsKey(level))
                       _ActivityTile(
                         icon: Icons.timer_outlined,
                         color: const Color(0xFFD7263D),
