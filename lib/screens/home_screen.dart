@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../data/course.dart';
+import '../data/stories.dart';
 import '../logic/progress.dart';
 import '../logic/speech.dart';
 import '../logic/exercises.dart';
 import 'lesson_screen.dart';
 import 'settings_screen.dart';
+import 'stories_screen.dart';
 import 'writing_screen.dart';
 
 /// The main screen: a path of lessons grouped into units.
@@ -56,6 +58,19 @@ class HomeScreen extends StatelessWidget {
               children: [
                 const _NoVoiceBanner(),
                 _CourseCard(progress: progress),
+                Card(
+                  margin: const EdgeInsets.only(top: 4, bottom: 4),
+                  child: ListTile(
+                    leading: const Icon(Icons.menu_book, size: 32),
+                    title: const Text('Stories', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text('${progress.storiesRead.length} of ${stories.length} read · '
+                        'short stories using HSK 1 words'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => StoriesScreen(progress: progress),
+                    )),
+                  ),
+                ),
                 for (final unit in course) ...[
                   if (unit.bonus && unit == course.firstWhere((u) => u.bonus))
                     Padding(

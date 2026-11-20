@@ -73,7 +73,9 @@ class Progress extends ChangeNotifier {
   List<Word> get dueWords {
     final r = _review;
     final today = _todayNumber;
-    final due = learnedWords.where((w) => (r[w.hanzi]?[1] ?? today) <= today).toList()
+    // Words from finished lessons, plus words added from stories.
+    final pool = {...learnedWords, ...allWords.where((w) => r.containsKey(w.hanzi))};
+    final due = pool.where((w) => (r[w.hanzi]?[1] ?? today) <= today).toList()
       ..sort((a, b) => (r[a.hanzi]?[0] ?? 0).compareTo(r[b.hanzi]?[0] ?? 0));
     return due;
   }
@@ -137,6 +139,12 @@ class Progress extends ChangeNotifier {
     }
     await _prefs.setInt('xp', xp + earnedXp);
 
+    await _bumpStreak();
+    notifyListeners();
+  }
+
+  /// Counts today towards the daily streak.
+  Future<void> _bumpStreak() async {
     final today = _today();
     final last = _prefs.getString('lastDay');
     final gap = last == null ? null : today.difference(DateTime.parse(last)).inDays;
@@ -144,11 +152,32 @@ class Progress extends ChangeNotifier {
       await _prefs.setInt('streak', gap == 1 ? streak + 1 : 1);
       await _prefs.setString('lastDay', today.toIso8601String());
     }
+  }
+
+  /// Puts a word on the review list (from a story), due today. Returns false if it was already there.
+  Future<bool> addToReview(Word w) async {
+    final r = _review;
+    if (r.containsKey(w.hanzi)) return false;
+    r[w.hanzi] = [1, _todayNumber];
+    await _prefs.setString('review', jsonEncode(r));
+    notifyListeners();
+    return true;
+  }
+
+  bool isInReview(Word w) => _review.containsKey(w.hanzi);
+
+  // ---- Stories ----
+  Set<String> get storiesRead => (_prefs.getStringList('storiesRead') ?? const []).toSet();
+
+  Future<void> finishStory(String id, int earnedXp) async {
+    await _prefs.setStringList('storiesRead', {...storiesRead, id}.toList());
+    await _prefs.setInt('xp', xp + earnedXp);
+    await _bumpStreak();
     notifyListeners();
   }
 
   Future<void> reset() async {
-    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review']) {
+    for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead']) {
       await _prefs.remove(k);
     }
     notifyListeners();

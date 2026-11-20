@@ -36,6 +36,18 @@ If the app says "no Chinese voice found", add one and restart the app:
   Manage Voices → Chinese (China mainland), then download a voice such as Tingting.
 - **Browser (`flutter run -d chrome`):** Chrome usually has a Chinese voice already.
 
+## Stories
+
+The **Stories** card on the home screen opens 10 short original stories: everyday scenes plus
+retellings of two classic fables (守株待兔 and 画蛇添足). Each story is labelled with its level,
+worked out automatically from its words ("HSK 1", or "HSK 1+" when it needs a few extra words),
+and shows how many of its words you already know. While reading you can tap any word for its
+pinyin, meaning and sound and add it to your review list, switch pinyin on or off, hear a
+paragraph or the whole story, and show the English. Each story ends with a few questions.
+
+Stories live in `lib/data/stories.dart`. Write each paragraph with spaces between words; any
+word that isn't a course word goes in `storyExtras` (the tests check this).
+
 ## Writing characters
 
 Lessons end by writing one or two of their new characters: watch the stroke order, then
