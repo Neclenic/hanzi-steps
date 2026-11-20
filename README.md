@@ -96,15 +96,25 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   reading, choose slow or normal speech, test the voice, or reset your progress.
 - **Mistakes come back**: anything you get wrong is asked again at the end.
 - **Progress is saved** on your computer: finished lessons, XP and a daily streak.
-- **Sound**: words and tones are read aloud by your computer's built-in Chinese voice,
-  with speaker buttons and "listen and choose" questions.
+- **Sound**: words, sentences and phrases are read by a natural Mandarin voice (Xiaoxiao), recorded
+  into the app, with speaker buttons and "listen and choose" questions.
 - **Keyboard friendly**: press 1–4 to pick an answer (1–9 to add sentence tiles, Backspace
   to undo), Enter to check or continue, R to hear it again, Esc to leave.
 
 ## Sound
 
-The app uses the Chinese voice that comes with your computer, so no internet is needed.
-If the app says "no Chinese voice found", add one and restart the app:
+About 3,700 recordings of a natural Mandarin voice (Xiaoxiao, made with Azure neural text-to-speech)
+come with the app in `assets/voice`, so no internet is needed. They cover every course word, sentence,
+story, dialogue, textbook lesson, idiom, survival phrase and pinyin-chart character. Settings → Natural
+voice turns them off.
+
+To record new text after adding content, run `python3 tool/make_voice.py --extra tool/voice_extra.txt`.
+It needs network access to the Azure Speech service (see the top of that file). The key is never stored
+in the project. `test/voice_test.dart` fails if a course word, dialogue line, idiom, phrase or chart
+character has no recording.
+
+Anything without a recording (for example randomly made numbers) is read by the Chinese voice that comes
+with your computer. If the app says "no Chinese voice found", add one and restart the app:
 
 - **Windows:** Settings → Time & language → Speech → Manage voices → Add voices →
   "Chinese (Simplified, China)".
@@ -214,7 +224,7 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Stroke data and stroke checking | `lib/logic/strokes.dart`, `assets/strokes/` |
 | The writing box | `lib/widgets/character_writer.dart` |
 | Writing practice page | `lib/screens/writing_screen.dart` |
-| Reading Chinese aloud | `lib/logic/speech.dart` |
+| Reading Chinese aloud (recordings, then the computer's voice) | `lib/logic/speech.dart`, `assets/voice/`, `tool/make_voice.py` |
 | The lesson path (home screen) | `lib/screens/home_screen.dart` |
 | The lesson and quiz screens | `lib/screens/lesson_screen.dart` |
 

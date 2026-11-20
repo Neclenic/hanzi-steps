@@ -25,6 +25,13 @@ class Settings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Use the natural recorded voice where there is a recording (otherwise the computer's voice).
+  bool get naturalVoice => _prefs?.getBool('naturalVoice') ?? true;
+  set naturalVoice(bool v) {
+    _prefs?.setBool('naturalVoice', v);
+    notifyListeners();
+  }
+
   /// Which course the home screen shows: HSK 1, 2 or 3.
   int get level => _prefs?.getInt('level') ?? 1;
   set level(int v) {
