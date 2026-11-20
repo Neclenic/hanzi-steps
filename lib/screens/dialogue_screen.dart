@@ -8,7 +8,9 @@ import '../data/dialogues.dart';
 import '../logic/progress.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
+import '../logic/word_lookup.dart';
 import '../widgets/anim.dart';
+import '../widgets/word_sheet.dart';
 import '../widgets/quiz_parts.dart';
 import 'lesson_screen.dart' show SpeakButton;
 import 'speaking_screen.dart' show SayItButton;
@@ -271,6 +273,9 @@ class _DialogueScreenState extends State<DialogueScreen> {
         Card(
           child: ListTile(leading: const Icon(Icons.flag_outlined), title: const Text('Your part'), subtitle: Text(d.goal)),
         ),
+        const SizedBox(height: 8),
+        Text('Tip: tap any word in the conversation to see what it means, or to save it to My words.',
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 24),
         SizedBox(
           width: 240,
@@ -302,7 +307,20 @@ class _DialogueScreenState extends State<DialogueScreen> {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
         Row(mainAxisSize: MainAxisSize.min, children: [
-          Flexible(child: Text(line.hanzi, style: const TextStyle(fontSize: 22))),
+          // Tap a word to see what it means and save it to My words.
+          Flexible(
+            child: Wrap(children: [
+              for (final t in line.zh.split(' '))
+                if (lookupWord(t) case final w?)
+                  InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () => showWordSheet(context, widget.progress, w),
+                    child: Text(t, style: const TextStyle(fontSize: 22)),
+                  )
+                else
+                  Text(t, style: const TextStyle(fontSize: 22)),
+            ]),
+          ),
           SpeakButton(line.hanzi, size: 32),
         ]),
         if (Settings.instance.showPinyin) Text(line.pinyin, style: TextStyle(color: scheme.primary)),

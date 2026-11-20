@@ -310,6 +310,74 @@ class Progress extends ChangeNotifier {
     return best;
   }
 
+  // ---- Look-alike characters ----
+
+  /// Right and total answers for each look-alike group, as {"mai": (right, total)}.
+  Map<String, (int, int)> get lookAlikeStats => _rightTotal('lookStats');
+
+  Future<void> recordLookAlike(String groupId, bool right) async {
+    await _addRightTotal('lookStats', groupId, right);
+    notifyListeners();
+  }
+
+  // ---- My word list ----
+
+  /// Words the learner saved to their own list, newest first.
+  List<String> get myWords => _prefs.getStringList('myWords') ?? const [];
+
+  bool isMyWord(String hanzi) => myWords.contains(hanzi);
+
+  /// Adds the word to the list, or takes it off if it's already there. Returns true if it was added.
+  Future<bool> toggleMyWord(String hanzi) async {
+    final list = [...myWords];
+    final added = !list.remove(hanzi);
+    if (added) list.insert(0, hanzi);
+    await _prefs.setStringList('myWords', list);
+    notifyListeners();
+    return added;
+  }
+
+  // ---- Placement test ----
+
+  /// Has the learner taken (or dismissed) the placement test?
+  bool get placementSeen => _prefs.getBool('placementSeen') ?? false;
+  Future<void> setPlacementSeen() async {
+    await _prefs.setBool('placementSeen', true);
+    notifyListeners();
+  }
+
+  /// Marks lessons as done after a placement test. Their words go on the review list,
+  /// spread over the next two weeks so they don't all come back on the same day.
+  Future<void> skipLessons(List<Lesson> lessons) async {
+    await _prefs.setStringList('completed', {...completed, ...lessons.map((l) => l.id)}.toList());
+    final r = _review;
+    final today = _todayNumber;
+    var i = 0;
+    for (final l in lessons) {
+      for (final w in l.words) {
+        if (r.containsKey(w.hanzi)) continue;
+        r[w.hanzi] = [2, today + 1 + (i++ % 14)];
+      }
+    }
+    await _prefs.setString('review', jsonEncode(r));
+    await _prefs.setBool('placementSeen', true);
+    notifyListeners();
+  }
+
+  // ---- Pet panda ----
+
+  String get pandaName => _prefs.getString('pandaName') ?? 'Bamboo';
+  Future<void> setPandaName(String name) async {
+    await _prefs.setString('pandaName', name);
+    notifyListeners();
+  }
+
+  /// Days since the last XP was earned (0 = today), or null if never.
+  int? get daysAway {
+    final last = _prefs.getString('lastDay');
+    return last == null ? null : _today().difference(DateTime.parse(last)).inDays;
+  }
+
   // ---- Badges ----
   Set<String> get badgesSeen => (_prefs.getStringList('badgesSeen') ?? const []).toSet();
   Future<void> setBadgesSeen(Set<String> ids) => _prefs.setStringList('badgesSeen', ids.toList());
@@ -357,7 +425,7 @@ class Progress extends ChangeNotifier {
   Future<void> reset() async {
     for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examBest2', 'examBest3', 'examsTaken', 'examsPassed', 'examFullMarks',
       'counters', 'toneStats', 'pairStats', 'dialoguesDone', 'badgesSeen', 'bestStreak', 'goalDays',
-      'gameBest_match', 'gameBest_fall']) {
+      'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName']) {
       await _prefs.remove(k);
     }
     notifyListeners();

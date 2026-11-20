@@ -10,7 +10,17 @@ import '../data/dialogues.dart';
 import '../data/grammar.dart';
 import '../logic/badges.dart';
 import '../logic/exam.dart';
+import '../data/culture.dart';
+import '../data/look_alikes.dart';
+import '../widgets/panda.dart';
+import 'culture_screen.dart';
 import 'dialogue_screen.dart';
+import 'dictation_screen.dart';
+import 'look_alikes_screen.dart';
+import 'my_words_screen.dart';
+import 'numbers_screen.dart';
+import 'placement_screen.dart';
+import 'word_search_screen.dart';
 import 'exam_screen.dart';
 import 'games_screen.dart';
 import 'grammar_screen.dart';
@@ -57,6 +67,11 @@ class HomeScreen extends StatelessWidget {
               _Stat(icon: Icons.local_fire_department, color: Colors.orange, value: progress.streak, tip: 'Day streak'),
               _Stat(icon: Icons.bolt, color: Colors.amber.shade700, value: progress.xp, tip: 'Total XP'),
               IconButton(
+                icon: const Icon(Icons.search),
+                tooltip: 'Word search',
+                onPressed: () => _push(context, WordSearchScreen(progress: progress)),
+              ),
+              IconButton(
                 icon: const Icon(Icons.draw),
                 tooltip: 'Writing practice',
                 onPressed: () => _push(context, WritingScreen(progress: progress)),
@@ -77,7 +92,10 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
                   const _NoVoiceBanner(),
+                  if (!progress.placementSeen && progress.completed.isEmpty)
+                    FadeSlideIn(child: _PlacementCard(progress: progress, onOpen: () => _push(context, PlacementScreen(progress: progress)))),
                   FadeSlideIn(child: _GoalCard(progress: progress)),
+                  FadeSlideIn(delay: const Duration(milliseconds: 40), child: PandaCard(progress: progress)),
                   const SizedBox(height: 4),
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 80),
@@ -111,11 +129,60 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => _push(context, TonePairsScreen(progress: progress)),
                       ),
                       _ActivityTile(
+                        icon: Icons.hearing,
+                        color: const Color(0xFF1565C0),
+                        title: 'Dictation',
+                        subtitle: 'Hear a sentence, build it',
+                        onTap: () => _push(context, DictationScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
                         icon: Icons.keyboard_alt_outlined,
                         color: const Color(0xFF00897B),
                         title: 'Type pinyin',
-                        subtitle: 'Hear it, type it',
+                        subtitle: 'Hear a word, type it',
                         onTap: () => _push(context, TypingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.payments_outlined,
+                        color: const Color(0xFF2E7D32),
+                        title: 'Numbers',
+                        subtitle: 'Prices, phones, dates, times',
+                        onTap: () => _push(context, NumbersScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.compare_arrows,
+                        color: const Color(0xFFAD1457),
+                        title: 'Look-alikes',
+                        subtitle: '${lookAlikeGroups.length} groups like 人 · 入',
+                        onTap: () => _push(context, LookAlikesScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.lightbulb_outline,
+                        color: const Color(0xFF8D6E63),
+                        title: 'Grammar',
+                        subtitle: '${grammarTips.length} short tips',
+                        onTap: () => _push(context, GrammarScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.temple_buddhist_outlined,
+                        color: const Color(0xFFC62828),
+                        title: 'Culture',
+                        subtitle: '${cultureNotes.length} notes on life in China',
+                        onTap: () => _push(context, CultureScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.search,
+                        color: const Color(0xFF455A64),
+                        title: 'Word search',
+                        subtitle: 'Look up any course word',
+                        onTap: () => _push(context, WordSearchScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.star_outline,
+                        color: const Color(0xFFF9A825),
+                        title: 'My words',
+                        subtitle: progress.myWords.isEmpty ? 'Save words with ☆' : '${progress.myWords.length} saved',
+                        onTap: () => _push(context, MyWordsScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.sports_esports_outlined,
@@ -134,11 +201,11 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => _push(context, ExamIntroScreen(progress: progress, level: level)),
                       ),
                       _ActivityTile(
-                        icon: Icons.lightbulb_outline,
-                        color: const Color(0xFF8D6E63),
-                        title: 'Grammar',
-                        subtitle: '${grammarTips.length} short tips',
-                        onTap: () => _push(context, GrammarScreen(progress: progress)),
+                        icon: Icons.explore_outlined,
+                        color: const Color(0xFF6D4C41),
+                        title: 'Placement test',
+                        subtitle: 'Skip what you already know',
+                        onTap: () => _push(context, PlacementScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.insights,
@@ -317,7 +384,7 @@ class _ActivityGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, c) {
-        final perRow = c.maxWidth >= 420 ? 3 : 2;
+        final perRow = c.maxWidth >= 540 ? 4 : (c.maxWidth >= 400 ? 3 : 2);
         final w = (c.maxWidth - 8 * (perRow - 1)) / perRow;
         return Wrap(spacing: 8, runSpacing: 8, children: [for (final t in tiles) SizedBox(width: w, child: t)]);
       });
@@ -355,6 +422,35 @@ class _ActivityTile extends StatelessWidget {
               ]),
             ),
           ),
+        ),
+      );
+}
+
+/// Shown to new learners: take the placement test to skip what you already know.
+class _PlacementCard extends StatelessWidget {
+  final Progress progress;
+  final VoidCallback onOpen;
+  const _PlacementCard({required this.progress, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.only(top: 8),
+        color: Theme.of(context).colorScheme.secondaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+          child: Row(children: [
+            const Text('🧭', style: TextStyle(fontSize: 28)),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Already know some Chinese? Take a short placement test and skip the lessons you know.'),
+            ),
+            TextButton(onPressed: onOpen, child: const Text('TAKE IT')),
+            IconButton(
+              tooltip: 'No thanks',
+              icon: const Icon(Icons.close),
+              onPressed: progress.setPlacementSeen,
+            ),
+          ]),
         ),
       );
 }
