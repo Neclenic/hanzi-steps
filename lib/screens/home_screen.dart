@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/course.dart';
 import '../data/stories.dart';
@@ -13,8 +14,18 @@ import '../logic/exam.dart';
 import '../data/culture.dart';
 import '../data/look_alikes.dart';
 import '../data/textbook.dart';
+import '../data/idioms.dart';
+import '../data/radicals.dart';
+import '../logic/daily_challenge.dart';
+import '../logic/version.dart';
+import '../logic/weekly_report.dart';
 import '../widgets/panda.dart';
 import 'culture_screen.dart';
+import 'idioms_screen.dart';
+import 'measure_words_screen.dart';
+import 'memory_writing_screen.dart';
+import 'radicals_screen.dart';
+import 'weekly_report_screen.dart';
 import 'dialogue_screen.dart';
 import 'dictation_screen.dart';
 import 'look_alikes_screen.dart';
@@ -50,6 +61,32 @@ class HomeScreen extends StatelessWidget {
 
   void _push(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+
+  /// Opens the activity that today's challenge is about.
+  void _openChallenge(BuildContext context, ChallengeGo go, Lesson? current) {
+    final p = progress;
+    final screen = switch (go) {
+      ChallengeGo.lesson => null,
+      ChallengeGo.dialogue => DialoguesScreen(progress: p),
+      ChallengeGo.story => StoriesScreen(progress: p),
+      ChallengeGo.textbook => TextbookScreen(progress: p),
+      ChallengeGo.tonePairs => TonePairsScreen(progress: p),
+      ChallengeGo.numbers => NumbersScreen(progress: p),
+      ChallengeGo.lookAlikes => LookAlikesScreen(progress: p),
+      ChallengeGo.dictation => DictationScreen(progress: p),
+      ChallengeGo.typing => TypingScreen(progress: p),
+      ChallengeGo.measures => MeasureWordsScreen(progress: p),
+      ChallengeGo.memory => MemoryWritingScreen(progress: p),
+      ChallengeGo.idioms => IdiomsScreen(progress: p),
+      ChallengeGo.games => GamesScreen(progress: p),
+      ChallengeGo.none => null,
+    };
+    if (screen != null) {
+      _push(context, screen);
+    } else if (go == ChallengeGo.lesson && current != null) {
+      _open(context, current);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,9 +131,16 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
                   const _NoVoiceBanner(),
+                  const _UpdateBanner(),
                   if (!progress.placementSeen && progress.completed.isEmpty)
                     FadeSlideIn(child: _PlacementCard(progress: progress, onOpen: () => _push(context, PlacementScreen(progress: progress)))),
                   FadeSlideIn(child: _GoalCard(progress: progress)),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 20),
+                    child: _ChallengeCard(progress: progress, onGo: (go) => _openChallenge(context, go, current)),
+                  ),
+                  if (reportDue(progress))
+                    FadeSlideIn(child: _ReportCard(onOpen: () => _push(context, WeeklyReportScreen(progress: progress)))),
                   FadeSlideIn(delay: const Duration(milliseconds: 40), child: PandaCard(progress: progress)),
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 60),
@@ -161,6 +205,34 @@ class HomeScreen extends StatelessWidget {
                         title: 'Look-alikes',
                         subtitle: '${lookAlikeGroups.length} groups like 人 · 入',
                         onTap: () => _push(context, LookAlikesScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.format_list_numbered,
+                        color: const Color(0xFF6A1B9A),
+                        title: 'Counting words',
+                        subtitle: '个 本 张 件 只 杯 and more',
+                        onTap: () => _push(context, MeasureWordsScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.edit_note,
+                        color: const Color(0xFF37474F),
+                        title: 'From memory',
+                        subtitle: 'Write with no outline (默写)',
+                        onTap: () => _push(context, MemoryWritingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.auto_stories_outlined,
+                        color: const Color(0xFFBF360C),
+                        title: 'Idiom stories',
+                        subtitle: '${progress.idiomsRead.length} of ${idioms.length} read · 画蛇添足',
+                        onTap: () => _push(context, IdiomsScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.extension_outlined,
+                        color: const Color(0xFF0277BD),
+                        title: 'Radicals',
+                        subtitle: '${radicals.length} parts like 氵 口 女',
+                        onTap: () => _push(context, RadicalsScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.lightbulb_outline,
@@ -432,7 +504,119 @@ class _ActivityTile extends StatelessWidget {
       );
 }
 
-/// Shown to new learners: take the placement test to skip what you already know.
+/// Today's small task, with a bonus for finishing it.
+class _ChallengeCard extends StatelessWidget {
+  final Progress progress;
+  final ValueChanged<ChallengeGo> onGo;
+  const _ChallengeCard({required this.progress, required this.onGo});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final st = challengeToday(progress);
+    final c = st.challenge;
+    final s = progress.challengeState;
+    if (s['day'] != Progress.todayKey || s['id'] != c.id) {
+      // Today's challenge counts from the moment it is first shown.
+      WidgetsBinding.instance.addPostFrameCallback((_) => startChallenge(progress));
+    }
+    final Widget action;
+    if (st.claimed) {
+      action = const Chip(avatar: Icon(Icons.check, size: 18, color: Color(0xFF2E9E5B)), label: Text('Done'));
+    } else if (st.complete) {
+      action = PopIn(
+        child: FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: const Color(0xFF2E9E5B)),
+          onPressed: () async {
+            if (await claimChallenge(progress) && context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Challenge done! +$challengeBonus XP 🎉')));
+            }
+          },
+          child: const Text('CLAIM +$challengeBonus XP'),
+        ),
+      );
+    } else if (c.go != ChallengeGo.none) {
+      action = OutlinedButton(onPressed: () => onGo(c.go), child: const Text('GO'));
+    } else {
+      action = const SizedBox.shrink();
+    }
+    return Card(
+      margin: const EdgeInsets.only(top: 8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+        child: Row(children: [
+          Text(c.emoji, style: const TextStyle(fontSize: 30)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('DAILY CHALLENGE', style: TextStyle(fontSize: 11, letterSpacing: 1, fontWeight: FontWeight.bold, color: scheme.primary)),
+              Text(c.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(child: AnimatedBar(value: st.done / c.goal)),
+                const SizedBox(width: 8),
+                Text('${st.done} / ${c.goal}', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+              ]),
+              if (!st.claimed && !st.complete)
+                Text('Bonus: +$challengeBonus XP', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+              if (st.claimed) Text('Come back tomorrow for a new one.', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          action,
+        ]),
+      ),
+    );
+  }
+}
+
+/// Once a week: your weekly report is ready.
+class _ReportCard extends StatelessWidget {
+  final VoidCallback onOpen;
+  const _ReportCard({required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) => Card(
+        margin: const EdgeInsets.only(top: 8),
+        color: Theme.of(context).colorScheme.tertiaryContainer,
+        child: ListTile(
+          leading: const Text('📊', style: TextStyle(fontSize: 28)),
+          title: const Text('Your weekly report is ready'),
+          subtitle: const Text('Words learned, time spent and your weakest tone'),
+          trailing: TextButton(onPressed: onOpen, child: const Text('OPEN')),
+          onTap: onOpen,
+        ),
+      );
+}
+
+/// Shown when a newer version is on GitHub.
+class _UpdateBanner extends StatelessWidget {
+  const _UpdateBanner();
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: UpdateChecker.instance,
+        builder: (context, _) {
+          final u = UpdateChecker.instance.available;
+          if (u == null) return const SizedBox.shrink();
+          return Card(
+            margin: const EdgeInsets.only(top: 8),
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 4, 6),
+              child: Row(children: [
+                const Text('🎁', style: TextStyle(fontSize: 26)),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Hanzi Steps ${u.version} is out! You have $appVersion.')),
+                FilledButton(onPressed: () => launchUrl(Uri.parse(u.url)), child: const Text('GET IT')),
+                IconButton(tooltip: 'Not now', icon: const Icon(Icons.close), onPressed: UpdateChecker.instance.dismiss),
+              ]),
+            ),
+          );
+        },
+      );
+}
+
 /// The textbook, with the next lesson to do.
 class _TextbookCard extends StatelessWidget {
   final Progress progress;

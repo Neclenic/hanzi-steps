@@ -263,22 +263,43 @@ class RubyLine extends StatelessWidget {
             Text(ch, style: hzStyle),
           ]),
         );
+    // Punctuation sticks to its word: closing marks (，。” …) to the word before, an opening “ to
+    // the word after. So a line never starts with a comma or a closing quote.
+    final groups = <List<RubyWord>>[];
+    var openNext = false;
+    for (final w in rubyWords(line)) {
+      final isPunct = w.$2.isEmpty;
+      if (isPunct && w.$1 != '“' && groups.isNotEmpty && !openNext) {
+        groups.last.add(w);
+      } else if (openNext) {
+        groups.last.add(w);
+        openNext = isPunct && w.$1 == '“';
+      } else {
+        groups.add([w]);
+        openNext = isPunct && w.$1 == '“';
+      }
+    }
+    Widget punct(String t) =>
+        SizedBox(width: size * 0.9, child: Column(children: [if (pinyin) Text('', style: pyStyle), Text(t, style: hzStyle)]));
+    Widget word(String t, List<String> py) => InkWell(
+          borderRadius: BorderRadius.circular(6),
+          onTap: onWord == null ? null : () => onWord!(t),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            for (var i = 0; i < t.length; i++) cell(t[i], py[i]),
+          ]),
+        );
     return Wrap(
       alignment: center ? WrapAlignment.center : WrapAlignment.start,
       crossAxisAlignment: WrapCrossAlignment.end,
       runSpacing: 6,
       children: [
-        for (final (t, py) in rubyWords(line))
-          if (py.isEmpty)
-            SizedBox(width: size * 0.9, child: Column(children: [if (pinyin) Text('', style: pyStyle), Text(t, style: hzStyle)]))
+        for (final g in groups)
+          if (g.length == 1)
+            (g.first.$2.isEmpty ? punct(g.first.$1) : word(g.first.$1, g.first.$2))
           else
-            InkWell(
-              borderRadius: BorderRadius.circular(6),
-              onTap: onWord == null ? null : () => onWord!(t),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                for (var i = 0; i < t.length; i++) cell(t[i], py[i]),
-              ]),
-            ),
+            Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
+              for (final (t, py) in g) py.isEmpty ? punct(t) : word(t, py),
+            ]),
       ],
     );
   }
@@ -729,7 +750,8 @@ class TbQuizScreen extends StatefulWidget {
   final List<TbQuestion> Function() build;
   final Future<int> Function(int right, int total) onFinish; // returns the XP earned
   final String? note;
-  const TbQuizScreen({super.key, required this.title, required this.build, required this.onFinish, this.note});
+  final void Function(TbQuestion q, bool right)? onAnswer; // called after each check
+  const TbQuizScreen({super.key, required this.title, required this.build, required this.onFinish, this.note, this.onAnswer});
 
   @override
   State<TbQuizScreen> createState() => _TbQuizScreenState();
@@ -769,6 +791,7 @@ class _TbQuizScreenState extends State<TbQuizScreen> {
         if (right) _right++;
       });
       final q = _q;
+      widget.onAnswer?.call(q, right);
       Speech.instance.say(switch (q) {
         TbChoice c => c.speak ?? '',
         TbBuild b => b.answer.join(),

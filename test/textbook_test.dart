@@ -23,15 +23,16 @@ Future<Progress> _fresh([Map<String, Object> prefs = const {}]) async {
 void main() {
   setUp(() => loopingAnimations = false);
 
-  test('textbook has 2 books, 6 units and 18 lessons', () {
+  test('textbook has 3 books, 9 units and 27 lessons', () {
     expect(tbUnitsOf(1).length, 3);
     expect(tbUnitsOf(2).length, 3);
-    expect(tbLessons.length, 18);
+    expect(tbUnitsOf(3).length, 3);
+    expect(tbLessons.length, 27);
     for (final (i, l) in tbLessons.indexed) {
       expect(l.number, i + 1);
     }
     final ids = {for (final l in tbLessons) l.id, for (final u in tbUnits) u.corner.id};
-    expect(ids.length, 24);
+    expect(ids.length, 36);
   });
 
   test('every line has one pinyin syllable per character', () {

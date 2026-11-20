@@ -11,6 +11,7 @@ import '../widgets/anim.dart';
 import '../widgets/tone_shape.dart';
 import 'lesson_screen.dart';
 import 'tone_pairs_screen.dart' show PairShape;
+import 'weekly_report_screen.dart';
 
 /// Your numbers: XP over the last weeks, how each tone is going, the words and tone
 /// pairs you miss most, and your badges.
@@ -29,6 +30,16 @@ class StatsScreen extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 680),
             child: ListView(padding: const EdgeInsets.all(16), children: [
               FadeSlideIn(child: _Overview(progress: progress)),
+              _Section('This week', child: Card(
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  leading: const Text('📊', style: TextStyle(fontSize: 26)),
+                  title: const Text('Weekly report'),
+                  subtitle: Text('${progress.weekXp()} XP, ${progress.weekSeconds() ~/ 60} minutes and ${progress.weekNewWords()} new words in the last 7 days'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WeeklyReportScreen(progress: progress))),
+                ),
+              )),
               _Section('XP in the last 14 days', child: _XpChart(progress: progress)),
               _Section('Your tones', child: _ToneBars(progress: progress)),
               _Section('Tone pairs to practise', child: _HardPairs(progress: progress)),
