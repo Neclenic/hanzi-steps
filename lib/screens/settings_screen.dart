@@ -92,6 +92,14 @@ class SettingsScreen extends StatelessWidget {
                             onSelectionChanged: (v) => settings.speechSpeed = v.first,
                           ),
                         ),
+                        if (Speech.instance.clips.isNotEmpty)
+                          SwitchListTile(
+                            title: const Text('Natural voice'),
+                            subtitle: const Text(
+                                'Recordings of a natural Mandarin voice (Xiaoxiao). Turn off to use your computer\'s own voice.'),
+                            value: settings.naturalVoice,
+                            onChanged: (v) => settings.naturalVoice = v,
+                          ),
                         ListTile(
                           title: const Text('Test the voice'),
                           subtitle: const Text('你好，我是你的中文老师。'),
