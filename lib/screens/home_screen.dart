@@ -12,6 +12,7 @@ import '../logic/badges.dart';
 import '../logic/exam.dart';
 import '../data/culture.dart';
 import '../data/look_alikes.dart';
+import '../data/textbook.dart';
 import '../widgets/panda.dart';
 import 'culture_screen.dart';
 import 'dialogue_screen.dart';
@@ -31,6 +32,7 @@ import 'speaking_screen.dart';
 import 'lesson_screen.dart';
 import 'settings_screen.dart';
 import 'stories_screen.dart';
+import 'textbook_screen.dart';
 import 'writing_screen.dart';
 import '../widgets/anim.dart';
 
@@ -96,6 +98,10 @@ class HomeScreen extends StatelessWidget {
                     FadeSlideIn(child: _PlacementCard(progress: progress, onOpen: () => _push(context, PlacementScreen(progress: progress)))),
                   FadeSlideIn(child: _GoalCard(progress: progress)),
                   FadeSlideIn(delay: const Duration(milliseconds: 40), child: PandaCard(progress: progress)),
+                  FadeSlideIn(
+                    delay: const Duration(milliseconds: 60),
+                    child: _TextbookCard(progress: progress, onOpen: () => _push(context, TextbookScreen(progress: progress))),
+                  ),
                   const SizedBox(height: 4),
                   FadeSlideIn(
                     delay: const Duration(milliseconds: 80),
@@ -427,6 +433,56 @@ class _ActivityTile extends StatelessWidget {
 }
 
 /// Shown to new learners: take the placement test to skip what you already know.
+/// The textbook, with the next lesson to do.
+class _TextbookCard extends StatelessWidget {
+  final Progress progress;
+  final VoidCallback onOpen;
+  const _TextbookCard({required this.progress, required this.onOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final done = progress.textbookDone;
+    final next = tbLessons.where((l) => !done.contains(l.id)).firstOrNull;
+    final count = tbLessons.where((l) => done.contains(l.id)).length;
+    return Card(
+      margin: const EdgeInsets.only(top: 8),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onOpen,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),
+          child: Row(children: [
+            Container(
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: const LinearGradient(colors: [Color(0xFFD7263D), Color(0xFFF18F01)]),
+              ),
+              child: const Text('课本', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Textbook', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text(
+                  next == null
+                      ? 'All ${tbLessons.length} lessons done!'
+                      : 'Next: lesson ${next.number}, ${next.title} (${next.titleEn}) · $count of ${tbLessons.length} done',
+                  style: TextStyle(color: scheme.onSurfaceVariant),
+                ),
+              ]),
+            ),
+            const Icon(Icons.chevron_right),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
 class _PlacementCard extends StatelessWidget {
   final Progress progress;
   final VoidCallback onOpen;

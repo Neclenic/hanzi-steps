@@ -1,14 +1,17 @@
 import '../data/course.dart';
 import '../data/look_alikes.dart';
 import '../data/stories.dart';
+import '../data/textbook.dart';
 import 'pinyin_input.dart';
 
-/// Finds a word by its characters: a course word, or an extra word from the stories.
+/// Finds a word by its characters: a course word, or an extra word from the stories or the textbook.
 Word? lookupWord(String hanzi) {
   final w = wordFor(hanzi);
   if (w != null) return w;
   final extra = storyExtras[hanzi];
   if (extra != null) return Word(hanzi, extra.$1, extra.$2, hsk: false);
+  final tb = textbookExtras[hanzi];
+  if (tb != null) return Word(hanzi, tb.$1, tb.$2, hsk: false);
   return null;
 }
 

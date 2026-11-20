@@ -52,7 +52,13 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **Pet panda**: grows from a baby panda to a panda master as you earn XP. It's happy when you reach your
   daily goal and gets hungry (and then sad) when reviews pile up. The "Feed" button starts a review.
   Tap its name to rename it.
-- **Badges**: 31 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Textbook (课本)**: 18 original lessons laid out like a Chinese school textbook, in two books (about
+  HSK 1 and HSK 2) of three units each. Each lesson is a rhyme (儿歌), a character list (识字) or a short
+  text (课文) with pinyin above every character, new characters in 田字格 squares (with radical, stroke
+  count, words made with them, and a box to write them), a "Say it" task and exercises. Each unit ends
+  with a review corner (语文园地): a radical family, "my discovery" notes like 日 + 月 = 明, and a
+  famous Tang poem or traditional saying to learn by heart.
+- **Badges**: 33 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
 - **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
   tone pairs and words you miss most (with a button to practise those words), and your badges.
 - **Quick games**: Speed match (match characters and meanings against the clock) and Falling
@@ -171,6 +177,7 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Placement test | `lib/logic/placement.dart`, `lib/screens/placement_screen.dart` |
 | Culture notes | `lib/data/culture.dart`, `lib/screens/culture_screen.dart` |
 | Pet panda | `lib/logic/panda.dart`, `lib/widgets/panda.dart` |
+| Textbook lessons and review corners | `lib/data/textbook.dart`, `lib/logic/textbook.dart`, `lib/screens/textbook_screen.dart` |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
 | Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
@@ -196,7 +203,8 @@ plays through mini exams for all three levels, and checks the tone detector on m
 recordings. It also checks that grammar examples and dialogues only use words already taught,
 that typed pinyin is marked right or wrong correctly, and plays through each game. It also checks how numbers
 are written and said, that look-alike examples and culture notes fit their lessons, the placement test,
-word search, My words and the panda's moods.
+word search, My words and the panda's moods. For the textbook, it checks that the pinyin lines up
+with every character, that every word can be looked up, and plays through a lesson's exercises.
 
 ## Not in this version yet
 
