@@ -3,6 +3,7 @@ import 'dart:math';
 import '../data/course.dart';
 import '../data/dialogues.dart';
 import '../data/idioms.dart';
+import '../data/listening.dart';
 import '../data/survival.dart';
 import '../data/stories.dart';
 import '../data/textbook.dart';
@@ -74,6 +75,9 @@ final badges = <HsBadge>[
   HsBadge('tones30', '🎵', 'Tone ear', 'Get 30 tone quiz questions right in the pinyin chart.', 30, (p) => p.count('toneQuizRight')),
   HsBadge('traveller', '🧳', 'Ready to travel', 'Take the quiz of every survival phrase pack.', phrasePacks.length,
       (p) => phrasePacks.where((k) => p.count('phrases_${k.id}') > 0).length),
+  HsBadge('listening', '🎧', 'Sharp ears', 'Answer the questions of every real-speed listening clip.', listenClips.length,
+      (p) => p.listenDone.length),
+  HsBadge('shadow50', '🦜', 'Echo', 'Shadow 50 sentences.', 50, (p) => p.count('shadowed')),
 ];
 
 /// The ids of the badges earned so far.

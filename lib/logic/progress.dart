@@ -398,6 +398,24 @@ class Progress extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- Listening at real speed ----
+  Set<String> get listenDone => (_prefs.getStringList('listenDone') ?? const []).toSet();
+
+  /// Best score for each listening clip, e.g. 2 (of 3 questions).
+  int listenBest(String id) => (_json('listenBest')[id] as num?)?.toInt() ?? 0;
+
+  Future<void> finishListening(String id, int right, int earnedXp) async {
+    await _prefs.setStringList('listenDone', {...listenDone, id}.toList());
+    final best = _json('listenBest');
+    if (right > ((best[id] as num?) ?? 0)) {
+      best[id] = right;
+      await _prefs.setString('listenBest', jsonEncode(best));
+    }
+    await _count('listenRuns');
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
+
   int gameBest(String game) => _prefs.getInt('gameBest_$game') ?? 0;
 
   /// Saves a game score and returns true if it's a new best.

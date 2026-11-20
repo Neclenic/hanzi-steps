@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -93,6 +94,53 @@ class Speech {
       return true;
     }
     return false;
+  }
+
+  /// Plays a long recording such as a listening clip ([name] without .mp3) at [rate]
+  /// (1.0 is natural speed). Falls back to reading [fallback] with the computer's voice.
+  Future<void> playClip(String name, {double rate = 1.0, String? fallback}) async {
+    if (clips.contains(name)) {
+      try {
+        await _tts?.stop();
+        final player = _player ??= AudioPlayer();
+        await player.stop();
+        await player.setPlaybackRate(rate);
+        await player.play(AssetSource('voice/$name.mp3'));
+        return;
+      } catch (e) {
+        debugPrint('Recording failed: $e');
+      }
+    }
+    if (fallback != null && _systemVoice) {
+      await _tts?.stop();
+      await _tts?.setSpeechRate(kIsWeb ? rate : rate * 0.5);
+      await _tts?.speak(fallback);
+    }
+  }
+
+  /// Stops whatever is being said.
+  Future<void> stop() async {
+    try {
+      await _player?.stop();
+      await _tts?.stop();
+    } catch (_) {}
+  }
+
+  /// Says [hanzi] and waits until it has been said (at most [expected] plus a little).
+  Future<void> sayAndWait(String hanzi, Duration expected) async {
+    if (!available.value) return;
+    final done = Completer<void>();
+    StreamSubscription<void>? sub;
+    if (Settings.instance.naturalVoice && clips.contains(clipName(hanzi))) {
+      sub = (_player ??= AudioPlayer()).onPlayerComplete.listen((_) {
+        if (!done.isCompleted) done.complete();
+      });
+    }
+    await say(hanzi);
+    // The computer's voice gives no reliable "finished" signal, so wait for the expected time.
+    final limit = expected * (Settings.instance.speechSpeed == 0 ? 1.25 : 1.05) + const Duration(milliseconds: 300);
+    await Future.any([done.future, Future<void>.delayed(limit)]);
+    await sub?.cancel();
   }
 
   /// Say some Chinese text out loud. Safe to call even if there's no voice.
