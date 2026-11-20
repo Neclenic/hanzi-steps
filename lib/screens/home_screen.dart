@@ -24,6 +24,7 @@ import 'culture_screen.dart';
 import 'idioms_screen.dart';
 import 'measure_words_screen.dart';
 import 'memory_writing_screen.dart';
+import 'pinyin_chart_screen.dart';
 import 'radicals_screen.dart';
 import 'weekly_report_screen.dart';
 import 'dialogue_screen.dart';
@@ -43,6 +44,7 @@ import 'speaking_screen.dart';
 import 'lesson_screen.dart';
 import 'settings_screen.dart';
 import 'stories_screen.dart';
+import 'survival_screen.dart';
 import 'textbook_screen.dart';
 import 'writing_screen.dart';
 import '../widgets/anim.dart';
@@ -165,6 +167,13 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => _push(context, DialoguesScreen(progress: progress)),
                       ),
                       _ActivityTile(
+                        icon: Icons.luggage_outlined,
+                        color: const Color(0xFF00838F),
+                        title: 'Survival phrases',
+                        subtitle: 'Taxi, restaurant, hotel, help',
+                        onTap: () => _push(context, SurvivalScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
                         icon: Icons.mic,
                         color: const Color(0xFF3BB273),
                         title: 'Speaking',
@@ -177,6 +186,13 @@ class HomeScreen extends StatelessWidget {
                         title: 'Tone pairs',
                         subtitle: 'The 20 tone combinations',
                         onTap: () => _push(context, TonePairsScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.grid_on,
+                        color: const Color(0xFF5E35B1),
+                        title: 'Pinyin chart',
+                        subtitle: 'Every syllable, all four tones',
+                        onTap: () => _push(context, PinyinChartScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.hearing,

@@ -188,8 +188,11 @@ TbQuestion _askQuestion(TbAsk a, Random r) {
   );
 }
 
-TbQuestion _buildQuestion(TbOrder o, Random r) {
-  final tokens = o.zh.split(' ').where((t) => t.isNotEmpty).toList();
+TbQuestion _buildQuestion(TbOrder o, Random r) => buildWordOrder(o.zh, o.en, r);
+
+/// A word-order question from a sentence with spaces between the words ("我 想 退房 。").
+TbBuild buildWordOrder(String zh, String en, Random r) {
+  final tokens = zh.split(' ').where((t) => t.isNotEmpty).toList();
   final end = tokens.isNotEmpty && tbPunctuation.contains(tokens.last) ? tokens.removeLast() : '';
   // Inner punctuation (a comma) stays attached to the word before it.
   final words = <String>[];
@@ -205,7 +208,7 @@ TbQuestion _buildQuestion(TbOrder o, Random r) {
   for (var tries = 0; tries < 5 && bank.join() == words.join() && words.length > 1; tries++) {
     bank = [...words]..shuffle(r);
   }
-  return TbBuild(words, end, bank, o.en);
+  return TbBuild(words, end, bank, en);
 }
 
 /// The exercises (练习) for one lesson: a question for each new character, then the

@@ -42,6 +42,22 @@ class SettingsScreen extends StatelessWidget {
           child: ListenableBuilder(
             listenable: settings,
             builder: (context, _) => ListView(padding: const EdgeInsets.all(16), children: [
+              const _Heading('Look'),
+              ListTile(
+                title: const Text('Colours'),
+                subtitle: const Text('Dark is easier on the eyes at night.'),
+                trailing: SegmentedButton<int>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(value: 0, icon: Icon(Icons.computer, size: 18), label: Text('Auto')),
+                    ButtonSegment(value: 1, icon: Icon(Icons.light_mode_outlined, size: 18), label: Text('Light')),
+                    ButtonSegment(value: 2, icon: Icon(Icons.dark_mode_outlined, size: 18), label: Text('Dark')),
+                  ],
+                  selected: {settings.themeChoice},
+                  onSelectionChanged: (v) => settings.themeChoice = v.first,
+                ),
+              ),
+              const SizedBox(height: 16),
               const _Heading('Reading'),
               SwitchListTile(
                 title: const Text('Show pinyin in questions'),

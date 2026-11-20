@@ -62,13 +62,18 @@ class HanziStepsApp extends StatelessWidget {
             TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
           }),
         );
-    return MaterialApp(
-      title: 'Hanzi Steps',
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: theme(Brightness.light),
-      darkTheme: theme(Brightness.dark),
-      home: HomeScreen(progress: progress),
+    // Rebuilds when the light/dark choice changes in Settings.
+    return ListenableBuilder(
+      listenable: Settings.instance,
+      builder: (context, _) => MaterialApp(
+        title: 'Hanzi Steps',
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        theme: theme(Brightness.light),
+        darkTheme: theme(Brightness.dark),
+        themeMode: const [ThemeMode.system, ThemeMode.light, ThemeMode.dark][Settings.instance.themeChoice.clamp(0, 2)],
+        home: HomeScreen(progress: progress),
+      ),
     );
   }
 }

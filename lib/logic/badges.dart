@@ -3,6 +3,7 @@ import 'dart:math';
 import '../data/course.dart';
 import '../data/dialogues.dart';
 import '../data/idioms.dart';
+import '../data/survival.dart';
 import '../data/stories.dart';
 import '../data/textbook.dart';
 import 'panda.dart';
@@ -69,6 +70,9 @@ final badges = <HsBadge>[
   HsBadge('memory20', '✍️', 'From memory', 'Write 20 characters from memory.', 20, (p) => p.count('memoryRight')),
   HsBadge('radicals30', '🧩', 'Part finder', 'Get 30 radical questions right.', 30, (p) => p.count('radicalRight')),
   HsBadge('idioms', '🐉', 'Storyteller', 'Read every idiom story and take its quiz.', idioms.length, (p) => p.idiomsRead.length),
+  HsBadge('tones30', '🎵', 'Tone ear', 'Get 30 tone quiz questions right in the pinyin chart.', 30, (p) => p.count('toneQuizRight')),
+  HsBadge('traveller', '🧳', 'Ready to travel', 'Take the quiz of every survival phrase pack.', phrasePacks.length,
+      (p) => phrasePacks.where((k) => p.count('phrases_${k.id}') > 0).length),
 ];
 
 /// The ids of the badges earned so far.

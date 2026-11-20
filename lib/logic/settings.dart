@@ -47,6 +47,13 @@ class Settings extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Light or dark colours: 0 = follow the computer, 1 = always light, 2 = always dark.
+  int get themeChoice => _prefs?.getInt('themeChoice') ?? 0;
+  set themeChoice(int v) {
+    _prefs?.setInt('themeChoice', v);
+    notifyListeners();
+  }
+
   /// Look on GitHub once a day for a newer version of the app.
   bool get updateCheck => _prefs?.getBool('updateCheck') ?? true;
   set updateCheck(bool v) {

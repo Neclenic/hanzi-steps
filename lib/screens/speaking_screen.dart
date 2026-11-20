@@ -260,11 +260,14 @@ class _SpeakingScreenState extends State<SpeakingScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(children: [
-                      Text(_item.hanzi, style: const TextStyle(fontSize: 72)),
+                      // Smaller for whole sentences, so they fit on one or two lines.
+                      Text(_item.hanzi,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: switch (_item.hanzi.characters.length) { <= 3 => 72, <= 6 => 56, _ => 40 })),
                       Text(_item.pinyin, style: TextStyle(fontSize: 28, color: scheme.primary, fontWeight: FontWeight.w600)),
                       Text(_item.meaning, style: TextStyle(fontSize: 16, color: scheme.onSurfaceVariant)),
                       const SizedBox(height: 12),
-                      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Wrap(alignment: WrapAlignment.center, runSpacing: 6, children: [
                         for (final (i, t) in expected.indexed)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -422,7 +425,11 @@ class _SpeakingScreenState extends State<SpeakingScreen> {
   }
 
   String _syllable(int i) {
-    final chars = _item.hanzi.characters.toList();
+    // One character per syllable: leave out punctuation, and the 儿 of 哪儿 or 一点儿, which is only an "r".
+    var chars = _item.hanzi.characters.where((c) => !'，。？！、：；'.contains(c)).toList();
+    if (chars.length > tonesOf(_item.pinyin).length) {
+      chars = [for (final (j, c) in chars.indexed) if (c != '儿' || j == 0) c];
+    }
     return i < chars.length ? chars[i] : 'Syllable ${i + 1}';
   }
 }
