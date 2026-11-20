@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../logic/progress.dart';
+import '../logic/reminders.dart';
 import '../logic/settings.dart';
 import '../logic/speech.dart';
 
@@ -78,6 +79,10 @@ class SettingsScreen extends StatelessWidget {
                       ),
               ),
               const SizedBox(height: 16),
+              const _Heading('Daily goal'),
+              GoalPicker(progress: progress),
+              ReminderSettings(progress: progress),
+              const SizedBox(height: 16),
               const _Heading('Progress'),
               ListTile(
                 leading: const Icon(Icons.restart_alt),
@@ -102,4 +107,96 @@ class _Heading extends StatelessWidget {
         child: Text(text,
             style: TextStyle(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.bold)),
       );
+}
+
+/// Choose how much XP a day to aim for.
+class GoalPicker extends StatelessWidget {
+  final Progress progress;
+  const GoalPicker({super.key, required this.progress});
+
+  static const goals = [(10, 'Relaxed'), (20, 'Steady'), (30, 'Serious'), (50, 'Intense')];
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: progress,
+        builder: (context, _) => ListTile(
+          title: const Text('XP a day'),
+          subtitle: Text('${goals.firstWhere((g) => g.$1 == progress.dailyGoal, orElse: () => goals[1]).$2}: '
+              'about ${(progress.dailyGoal / 10).ceil()} ${progress.dailyGoal <= 10 ? 'lesson' : 'lessons'} a day'),
+          trailing: SegmentedButton<int>(
+            showSelectedIcon: false,
+            segments: [for (final g in goals) ButtonSegment(value: g.$1, label: Text('${g.$1}'))],
+            selected: {progress.dailyGoal},
+            onSelectionChanged: (v) async {
+              await progress.setDailyGoal(v.first);
+              await refreshReminders(progress);
+            },
+          ),
+        ),
+      );
+}
+
+/// Turn the daily reminder on or off and pick its time.
+class ReminderSettings extends StatelessWidget {
+  final Progress progress;
+  const ReminderSettings({super.key, required this.progress});
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Settings.instance;
+    if (!Reminders.supported) {
+      return const ListTile(
+        leading: Icon(Icons.notifications_off_outlined),
+        title: Text('Daily reminder'),
+        subtitle: Text('Reminders work in the Windows and Mac apps, not in a web browser.'),
+      );
+    }
+    final time = TimeOfDay(hour: s.reminderHour, minute: s.reminderMinute);
+    return ListenableBuilder(
+      listenable: s,
+      builder: (context, _) => Column(children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.notifications_active_outlined),
+          title: const Text('Daily reminder'),
+          subtitle: Text(s.reminderOn
+              ? 'Every day at ${time.format(context)}, unless you have already reached your goal'
+              : 'Get a nudge to keep your streak going'),
+          value: s.reminderOn,
+          onChanged: (v) async {
+            if (v) await Reminders.instance.requestPermission();
+            s.reminderOn = v;
+            await refreshReminders(progress);
+          },
+        ),
+        if (s.reminderOn) ...[
+          ListTile(
+            leading: const SizedBox(width: 24),
+            title: const Text('Reminder time'),
+            trailing: OutlinedButton(
+              onPressed: () async {
+                final t = await showTimePicker(context: context, initialTime: time);
+                if (t == null) return;
+                s.setReminderTime(t.hour, t.minute);
+                await refreshReminders(progress);
+              },
+              child: Text(time.format(context)),
+            ),
+          ),
+          ListTile(
+            leading: const SizedBox(width: 24),
+            title: const Text('Send a test reminder now'),
+            trailing: const Icon(Icons.send_outlined),
+            onTap: () async {
+              final ok = await Reminders.instance.showTest();
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Notifications seem to be blocked. Check the notification settings of your computer.'),
+                ));
+              }
+            },
+          ),
+        ],
+      ]),
+    );
+  }
 }

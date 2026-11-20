@@ -49,7 +49,13 @@ Future<Progress> playThrough(WidgetTester tester, Lesson lesson, {Progress? exis
       final meaning = (find.textContaining('"').evaluate().first.widget as Text).data!.replaceAll('"', '');
       final sentence = lesson.sentences.firstWhere((x) => x.meaning == meaning);
       for (final t in sentence.tiles) {
-        await tester.tap(find.text(t).first);
+        // Tap a tile in the word bank that is still free (a word can appear twice).
+        final free = find.byWidgetPredicate((w) {
+          if (w.runtimeType.toString() != '_WordTile') return false;
+          final d = w as dynamic;
+          return d.text == t && d.number != null && d.ghost == false;
+        });
+        await tester.tap(free.first);
         await tester.pump();
       }
       await tester.tap(find.text('CHECK'));

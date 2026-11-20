@@ -23,7 +23,9 @@ void main() {
 
   test('story extras do not repeat course words', () {
     for (final k in storyExtras.keys) {
-      expect(wordFor(k), isNull, reason: '$k is already a course word');
+      // Allowed only for a different word written the same way (said differently).
+      final w = wordFor(k);
+      if (w != null) expect(w.pinyin, isNot(storyExtras[k]!.$1), reason: '$k is already a course word');
     }
   });
 
@@ -38,16 +40,17 @@ void main() {
     }
   });
 
-  test('stories are labelled HSK 1 and mostly use HSK 1 words', () {
+  test('stories are labelled with their HSK level', () {
     for (final s in stories) {
       final level = levelOf(s);
       // ignore: avoid_print
       print('${s.id}: ${level.label}, ${(level.hskShare * 100).round()}% HSK 1, new: ${level.newWords.join(' ')}');
-      expect(level.hskShare, greaterThan(0.65), reason: s.id);
+      expect(level.shareUpTo(level.level), greaterThan(0.65), reason: s.id);
     }
-    // Everyday stories stay within HSK 1; the fables need a few extra words.
-    final hsk1 = stories.where((s) => levelOf(s).label == 'HSK 1').length;
-    expect(hsk1, greaterThanOrEqualTo(8));
+    final labels = stories.map((s) => levelOf(s).label).toList();
+    expect(labels.where((l) => l == 'HSK 1').length, greaterThanOrEqualTo(8));
+    expect(labels.where((l) => l.startsWith('HSK 2')), isNotEmpty);
+    expect(labels.where((l) => l.startsWith('HSK 3')), isNotEmpty);
   });
 
   testWidgets('read a story, look up a word, add it to review, answer the questions', (tester) async {

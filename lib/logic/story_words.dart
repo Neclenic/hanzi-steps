@@ -9,49 +9,77 @@ class StoryWord {
   final Word? courseWord; // the course word, if the course teaches it
   const StoryWord(this.hanzi, this.pinyin, this.meaning, this.courseWord);
 
-  bool get isHsk1 => courseWord?.hsk == true && hskWords.contains(courseWord);
+  /// The HSK level (1, 2 or 3) of this word, or null if it isn't on an HSK list.
+  int? get hskLevel => courseWord?.hsk == true ? levelOfWord(hanzi) : null;
+
+  bool get isHsk1 => hskLevel == 1;
 }
 
 /// Looks up a word from a story. Returns null for punctuation or unknown words.
 StoryWord? lookupStoryWord(String token) {
   if (storyPunctuation.contains(token)) return null;
-  final w = wordFor(token);
-  if (w != null) return StoryWord(w.hanzi, w.pinyin, w.meaning, w);
+  // A story extra wins: it can be a different word written like a course word,
+  // such as 只 zhī (for animals) and the HSK 3 word 只 zhǐ (only).
   final extra = storyExtras[token];
   if (extra != null) return StoryWord(token, extra.$1, extra.$2, null);
+  final w = wordFor(token);
+  if (w != null) return StoryWord(w.hanzi, w.pinyin, w.meaning, w);
   return null;
 }
 
 /// How hard a story is, worked out from its words.
 class StoryLevel {
-  final int totalWords; // every word, counting repeats
-  final int hskWords; // of those, how many are HSK 1 words
-  final Set<String> newWords; // different words outside HSK 1
-  const StoryLevel(this.totalWords, this.hskWords, this.newWords);
+  final int totalWords; // every word, counting repeats (names left out)
+  final Map<int, int> byLevel; // how many of them are HSK 1, 2 and 3 words; 0 = none of these
+  final int level; // the HSK level the story is written at
+  final Set<String> newWords; // different words above that level, or outside HSK
+  const StoryLevel(this.totalWords, this.byLevel, this.level, this.newWords);
 
-  double get hskShare => totalWords == 0 ? 1 : hskWords / totalWords;
+  /// Share of the words that are HSK 1 words.
+  double get hskShare => shareUpTo(1);
 
-  /// For now the app only has the HSK 1 list. When HSK 2 and 3 lists are added,
-  /// this is where a story gets sorted into the higher levels.
-  String get label => hskShare >= 0.85 ? 'HSK 1' : 'HSK 1+';
+  /// Share of the words that are on the lists of HSK 1 up to [lv].
+  double shareUpTo(int lv) {
+    if (totalWords == 0) return 1;
+    var n = 0;
+    for (var l = 1; l <= lv; l++) {
+      n += byLevel[l] ?? 0;
+    }
+    return n / totalWords;
+  }
+
+  /// "HSK 2" when nearly every word is HSK 2 or easier, "HSK 2+" when it needs
+  /// a few extra words as well.
+  String get label => shareUpTo(level) >= 0.85 ? 'HSK $level' : 'HSK $level+';
 }
 
 StoryLevel levelOf(Story story) {
-  var total = 0, hsk = 0;
-  final fresh = <String>{};
+  var total = 0;
+  final by = <int, int>{};
+  final words = <String, int>{}; // word → its level (0 for none)
   for (final p in story.paragraphs) {
     for (final t in p.tokens) {
       final w = lookupStoryWord(t);
       if (w == null || storyNames.contains(t)) continue;
       total++;
-      if (w.isHsk1 || storyHskNumbers.contains(t)) {
-        hsk++;
-      } else {
-        fresh.add(t);
-      }
+      final lv = storyHskNumbers.contains(t) ? 1 : (w.hskLevel ?? 0);
+      by[lv] = (by[lv] ?? 0) + 1;
+      words[t] = lv;
     }
   }
-  return StoryLevel(total, hsk, fresh);
+  // The level is the lowest one that covers at least 95% of the HSK words used.
+  final hskTotal = total - (by[0] ?? 0);
+  var level = 1;
+  for (final lv in levels) {
+    level = lv;
+    var n = 0;
+    for (var l = 1; l <= lv; l++) {
+      n += by[l] ?? 0;
+    }
+    if (hskTotal == 0 || n / hskTotal >= 0.95) break;
+  }
+  final fresh = {for (final e in words.entries) if (e.value == 0 || e.value > level) e.key};
+  return StoryLevel(total, by, level, fresh);
 }
 
 /// Share of a story's words (counting repeats) that the learner has already learned.

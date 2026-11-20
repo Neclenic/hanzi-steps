@@ -24,4 +24,26 @@ class Settings extends ChangeNotifier {
     _prefs?.setInt('speechSpeed', v);
     notifyListeners();
   }
+
+  /// Which course the home screen shows: HSK 1, 2 or 3.
+  int get level => _prefs?.getInt('level') ?? 1;
+  set level(int v) {
+    _prefs?.setInt('level', v);
+    notifyListeners();
+  }
+
+  /// Daily reminder on or off, and its time.
+  bool get reminderOn => _prefs?.getBool('reminderOn') ?? false;
+  set reminderOn(bool v) {
+    _prefs?.setBool('reminderOn', v);
+    notifyListeners();
+  }
+
+  int get reminderHour => _prefs?.getInt('reminderHour') ?? 19;
+  int get reminderMinute => _prefs?.getInt('reminderMinute') ?? 0;
+  void setReminderTime(int hour, int minute) {
+    _prefs?.setInt('reminderHour', hour);
+    _prefs?.setInt('reminderMinute', minute);
+    notifyListeners();
+  }
 }
