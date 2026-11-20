@@ -7,7 +7,7 @@ import 'progress.dart';
 import 'settings.dart';
 
 /// This app's version. Keep it the same as `version:` in pubspec.yaml (a test checks).
-const appVersion = '1.2.1';
+const appVersion = '1.3.0';
 
 const latestReleaseApi = 'https://api.github.com/repos/Neclenic/hanzi-steps/releases/latest';
 const releasesPage = 'https://github.com/Neclenic/hanzi-steps/releases/latest';

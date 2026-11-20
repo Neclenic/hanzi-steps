@@ -72,7 +72,13 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   your weakest tone and your trickiest words. It pops up on the home screen once a week.
 - **Update check**: once a day the app looks on GitHub for a newer release and shows a "Get it" banner.
   You can turn this off in Settings, or check by hand there.
-- **Badges**: 38 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Pinyin chart (拼音表)**: all 391 Mandarin syllables, grouped by their first sound with a tip on saying it.
+  Tap a syllable to hear it in all four tones, each in a real character. Search with v for ü. A tone quiz
+  shows a character and asks which tone it has.
+- **Survival phrases**: six travel packs (taxi, restaurant, hotel, shopping, directions, emergencies) with
+  about 10 phrases each, the answers you are likely to hear, sound at normal and slow speed, a quiz and
+  "Say them", which checks your tones on each phrase.
+- **Badges**: 40 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
 - **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
   tone pairs and words you miss most (with a button to practise those words), and your badges.
 - **Quick games**: Speed match (match characters and meanings against the clock) and Falling
@@ -86,8 +92,8 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   after 1, 2, 4, 7, 15 and then 30 days; a word you forget comes back the same day. The
   Review button (bottom right) shows how many words are due, and the HSK 1 card at the top
   shows how many words you've learned and how many are well remembered.
-- **Settings** (gear icon): hide pinyin in questions to practise reading, choose slow or
-  normal speech, test the voice, or reset your progress.
+- **Settings** (gear icon): choose light, dark or automatic colours, hide pinyin in questions to practise
+  reading, choose slow or normal speech, test the voice, or reset your progress.
 - **Mistakes come back**: anything you get wrong is asked again at the end.
 - **Progress is saved** on your computer: finished lessons, XP and a daily streak.
 - **Sound**: words and tones are read aloud by your computer's built-in Chinese voice,
@@ -198,10 +204,12 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Idiom stories | `lib/data/idioms.dart`, `lib/logic/idioms.dart`, `lib/screens/idioms_screen.dart` |
 | Radicals | `lib/data/radicals.dart`, `lib/logic/radical_quiz.dart`, `lib/screens/radicals_screen.dart` |
 | Weekly report and time in the app | `lib/logic/weekly_report.dart`, `lib/screens/weekly_report_screen.dart` |
+| Pinyin chart and tone quiz | `lib/data/pinyin_chart.dart`, `lib/logic/pinyin_quiz.dart`, `lib/screens/pinyin_chart_screen.dart` |
+| Survival phrases | `lib/data/survival.dart`, `lib/logic/survival_quiz.dart`, `lib/screens/survival_screen.dart` |
 | App version and update check | `lib/logic/version.dart` (keep `appVersion` the same as `pubspec.yaml`) |
 | How questions are made from the words | `lib/logic/exercises.dart` |
 | Saving XP, streak, finished lessons and tricky words | `lib/logic/progress.dart` |
-| Saved settings (pinyin, speech speed) | `lib/logic/settings.dart` |
+| Saved settings (colours, pinyin, speech speed) | `lib/logic/settings.dart` |
 | Settings screen | `lib/screens/settings_screen.dart` |
 | Stroke data and stroke checking | `lib/logic/strokes.dart`, `assets/strokes/` |
 | The writing box | `lib/widgets/character_writer.dart` |
@@ -228,7 +236,8 @@ word search, My words and the panda's moods. For the textbook, it checks that th
 with every character, that every word can be looked up, and plays through a lesson's exercises.
 It also checks that counting-word questions have exactly one right answer, that idiom stories line up and
 their words can be looked up, the daily challenge counting and bonus, the version comparison for the
-update check, and the weekly report's numbers.
+update check, and the weekly report's numbers. For the pinyin chart, it checks that every syllable has four
+tones and no character is used twice; for survival phrases, that the pinyin has one syllable per character.
 
 ## Not in this version yet
 
