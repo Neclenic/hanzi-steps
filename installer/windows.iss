@@ -2,7 +2,7 @@
 ; Run by the GitHub workflow; AppVersion is passed in from pubspec.yaml.
 
 #ifndef AppVersion
-  #define AppVersion "1.2.0"
+  #define AppVersion "1.2.1"
 #endif
 
 [Setup]

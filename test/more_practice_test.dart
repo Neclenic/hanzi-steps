@@ -20,6 +20,7 @@ import 'package:hanzi_steps/logic/strokes.dart';
 import 'package:hanzi_steps/logic/textbook.dart';
 import 'package:hanzi_steps/logic/version.dart';
 import 'package:hanzi_steps/logic/weekly_report.dart';
+import 'package:hanzi_steps/main.dart';
 import 'package:hanzi_steps/screens/home_screen.dart';
 import 'package:hanzi_steps/screens/idioms_screen.dart';
 import 'package:hanzi_steps/screens/measure_words_screen.dart';
@@ -437,5 +438,15 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
+  });
+
+  testWidgets('Chinese text uses a Simplified Chinese font, not a borrowed Japanese one', (tester) async {
+    final progress = await _fresh();
+    await tester.binding.setSurfaceSize(const Size(900, 1400));
+    await tester.pumpWidget(HanziStepsApp(progress: progress));
+    await tester.pumpAndSettle();
+    final style = DefaultTextStyle.of(tester.element(find.text('DAILY CHALLENGE'))).style;
+    expect(style.fontFamilyFallback, contains('Microsoft YaHei'));
+    expect(style.fontFamilyFallback, contains('PingFang SC'));
   });
 }
