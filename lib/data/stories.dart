@@ -59,8 +59,6 @@ const storyExtras = <String, (String, String)>{
   '农民': ('nóngmín', 'farmer'),
   '兔子': ('tùzi', 'rabbit'),
   '跑': ('pǎo', 'to run'),
-  '撞': ('zhuàng', 'to bump into'),
-  '死': ('sǐ', 'to die / dead'),
   '蛇': ('shé', 'snake'),
   '酒': ('jiǔ', 'wine / alcohol'),
   '守株待兔': ('shǒu zhū dài tù', '"guard the tree, wait for rabbits": waiting for luck instead of working'),

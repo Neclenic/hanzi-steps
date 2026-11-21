@@ -257,9 +257,9 @@ void main() {
     });
   });
 
-  group('mini exams for HSK 2 and 3', () {
+  group('mini exams for HSK 2, 3 and 4', () {
     test('exam words are course words of the right level and questions make sense', () {
-      for (final level in [2, 3]) {
+      for (final level in [2, 3, 4]) {
         final set = examSets[level]!;
         for (final p in set.pictureWords) {
           expect(wordFor(p.hanzi), isNotNull, reason: p.hanzi);
@@ -275,7 +275,7 @@ void main() {
           final qs = buildExam(level: level, random: Random(seed));
           expect(qs.where((q) => q.part == ExamPart.listening), hasLength(10));
           expect(qs.where((q) => q.part == ExamPart.reading), hasLength(10));
-          expect(qs.where((q) => q.part == ExamPart.writing), hasLength(level == 3 ? examWritingQuestions : 0));
+          expect(qs.where((q) => q.part == ExamPart.writing), hasLength(level >= 3 ? examWritingQuestions : 0));
           for (final q in qs) {
             final keys = q.options.map((o) => '${o.label}${o.picture}').toList();
             expect(keys.toSet().length, keys.length, reason: 'duplicate options: ${q.text}');
@@ -288,6 +288,47 @@ void main() {
       }
       expect(examMaxFor(3), 300);
       expect(examPassFor(3), 180);
+    });
+
+    test('the HSK 4 exam judges statements and puts words in order', () {
+      final set = examSets[4]!;
+      expect(set.judges.length, greaterThanOrEqualTo(10));
+      final right = set.judges.where((j) => j.right).length;
+      expect(right, inInclusiveRange(set.judges.length ~/ 3, set.judges.length * 2 ~/ 3), reason: 'mix of right and wrong');
+      for (final o in set.orders) {
+        expect(o.options.toSet(), hasLength(3), reason: o.pinyin);
+        String chars(String t) => t.replaceAll(RegExp(r'[^一-鿿]'), '');
+        final pieces = (o.pieces.map(chars).toList()..sort()).join();
+        for (final opt in o.options) {
+          expect((chars(opt).split('')..sort()).join(), (pieces.split('')..sort()).join(),
+              reason: '$opt uses exactly the pieces');
+        }
+      }
+      final qs = buildExam(level: 4, random: Random(3));
+      expect(qs.where((q) => q.statement != null), hasLength(10));
+      expect(qs.where((q) => q.statement != null && q.part == ExamPart.listening).every((q) => q.speak == q.text), isTrue);
+      expect(examTimeFor(4), const Duration(minutes: 25));
+      expect(examMaxFor(4), 300);
+    });
+
+    testWidgets('take the HSK 4 exam with full marks', (tester) async {
+      final progress = await _fresh();
+      await tester.binding.setSurfaceSize(const Size(900, 1600));
+      final qs = buildExam(level: 4, random: Random(5));
+      await tester.pumpWidget(MaterialApp(home: ExamScreen(progress: progress, questions: qs, level: 4)));
+      await tester.pump();
+      for (final q in qs) {
+        if (q.statement != null) expect(find.text('★ ${q.statement}'), findsOneWidget);
+        final o = q.options[q.correct];
+        await tester.tap(find.text(o.picture ?? o.label).last);
+        await tester.pump();
+        await tester.tap(find.text(q == qs.last ? 'FINISH' : 'NEXT'));
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+      await tester.pump(const Duration(seconds: 3));
+      expect(find.textContaining('300 / 300'), findsWidgets);
+      expect(progress.bestExamFor(4), 300);
+      await tester.binding.setSurfaceSize(null);
     });
 
     testWidgets('take the HSK 3 exam with full marks', (tester) async {

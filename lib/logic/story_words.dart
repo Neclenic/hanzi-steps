@@ -1,4 +1,5 @@
 import '../data/course.dart';
+import '../data/reading.dart';
 import '../data/stories.dart';
 
 /// What the reader knows about one word in a story.
@@ -9,18 +10,18 @@ class StoryWord {
   final Word? courseWord; // the course word, if the course teaches it
   const StoryWord(this.hanzi, this.pinyin, this.meaning, this.courseWord);
 
-  /// The HSK level (1, 2 or 3) of this word, or null if it isn't on an HSK list.
+  /// The HSK level (1 to 4) of this word, or null if it isn't on an HSK list.
   int? get hskLevel => courseWord?.hsk == true ? levelOfWord(hanzi) : null;
 
   bool get isHsk1 => hskLevel == 1;
 }
 
-/// Looks up a word from a story. Returns null for punctuation or unknown words.
+/// Looks up a word from a story or a reading article. Returns null for punctuation or unknown words.
 StoryWord? lookupStoryWord(String token) {
   if (storyPunctuation.contains(token)) return null;
   // A story extra wins: it can be a different word written like a course word,
   // such as 只 zhī (for animals) and the HSK 3 word 只 zhǐ (only).
-  final extra = storyExtras[token];
+  final extra = storyExtras[token] ?? readingExtras[token];
   if (extra != null) return StoryWord(token, extra.$1, extra.$2, null);
   final w = wordFor(token);
   if (w != null) return StoryWord(w.hanzi, w.pinyin, w.meaning, w);

@@ -31,6 +31,8 @@ class ExamQuestion {
   final int correct;
   final bool trueFalse;
   final String? gapPinyin; // writing: the pinyin of the missing character
+  final String? statement; // HSK 4: the ★ statement to judge
+  final String? statementPinyin;
   const ExamQuestion({
     required this.part,
     required this.instruction,
@@ -42,12 +44,14 @@ class ExamQuestion {
     this.textPinyin,
     this.trueFalse = false,
     this.gapPinyin,
+    this.statement,
+    this.statementPinyin,
   });
 }
 
 /// How the mini exam is scored, like the real HSK 1 and 2: listening and reading are
-/// worth 100 points each, 200 in total, and 120 is a pass. HSK 3 adds a writing
-/// part, so it is out of 300 and 180 is a pass.
+/// worth 100 points each, 200 in total, and 120 is a pass. HSK 3 and 4 add a writing
+/// part, so they are out of 300 and 180 is a pass.
 const examMaxScore = 200;
 const examPassScore = 120;
 const examTime = Duration(minutes: 15);
@@ -56,7 +60,11 @@ const examWritingQuestions = 5;
 
 int examMaxFor(int level) => level >= 3 ? 300 : 200;
 int examPassFor(int level) => level >= 3 ? 180 : 120;
-Duration examTimeFor(int level) => level >= 3 ? const Duration(minutes: 20) : examTime;
+Duration examTimeFor(int level) => switch (level) {
+      >= 4 => const Duration(minutes: 25),
+      3 => const Duration(minutes: 20),
+      _ => examTime,
+    };
 
 /// Each part is worth 100 points.
 int partScore(int right, [int questions = examQuestionsPerPart]) => (right * 100 / questions).round();
@@ -64,7 +72,7 @@ int partScore(int right, [int questions = examQuestionsPerPart]) => (right * 100
 String _pinyinOf(String hanzi) => wordFor(hanzi)?.pinyin ?? '';
 
 /// Builds a fresh mini exam for an HSK level: 10 listening questions, then 10 reading
-/// questions, and for HSK 3 also 5 writing questions.
+/// questions, and for HSK 3 and 4 also 5 writing questions.
 List<ExamQuestion> buildExam({int level = 1, Random? random}) {
   final r = random ?? Random();
   final set = examSets[level]!;
@@ -142,6 +150,39 @@ List<ExamQuestion> buildExam({int level = 1, Random? random}) {
     );
   }
 
+  // HSK 4: is the ★ statement right?
+  const rw = [ExamOption('✓', pinyin: 'right'), ExamOption('✗', pinyin: 'wrong')];
+  final judges = [...set.judges]..shuffle(r);
+  var ji = 0;
+  ExamQuestion judge(ExamPart part) {
+    final j = judges[ji++];
+    final listening = part == ExamPart.listening;
+    return ExamQuestion(
+      part: part,
+      instruction: listening ? 'Listen. Is the statement right?' : 'Read. Is the statement right?',
+      speak: listening ? j.passage : null,
+      text: j.passage,
+      textPinyin: j.passagePinyin,
+      statement: j.statement,
+      statementPinyin: j.statementPinyin,
+      options: rw,
+      correct: j.right ? 0 : 1,
+      trueFalse: true,
+    );
+  }
+
+  // HSK 4 writing: which sentence has the words in the right order?
+  ExamQuestion order(ExamOrder o) {
+    final order = [0, 1, 2]..shuffle(r);
+    return ExamQuestion(
+      part: ExamPart.writing,
+      instruction: 'Which sentence puts the words in the right order? (In the real exam you write it.)',
+      text: o.pieces.join('  /  '),
+      options: [for (final i in order) ExamOption(o.options[i])],
+      correct: order.indexOf(0),
+    );
+  }
+
   // Which character is missing?
   ExamQuestion charQuestion(ExamChar c) {
     final order = [0, 1, 2]..shuffle(r);
@@ -157,6 +198,18 @@ List<ExamQuestion> buildExam({int level = 1, Random? random}) {
   }
 
   const l = ExamPart.listening, rd = ExamPart.reading;
+  if (set.judges.isNotEmpty) {
+    return [
+      // Listening: 5 statements to judge, 5 replies.
+      for (var i = 0; i < 5; i++) judge(l),
+      for (var i = 0; i < 5; i++) reply(l),
+      // Reading: 5 gaps, 5 statements to judge.
+      for (final g in pick(set.gaps, 5)) gap(g),
+      for (var i = 0; i < 5; i++) judge(rd),
+      // Writing: words in the right order.
+      for (final o in pick(set.orders, examWritingQuestions)) order(o),
+    ];
+  }
   return [
     // Listening: 3 picture checks, 3 picture choices, 4 replies.
     for (var i = 0; i < 3; i++) trueFalse(l),

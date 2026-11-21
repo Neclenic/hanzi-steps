@@ -8,9 +8,10 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **The full HSK 1 course**: all 150 words of HSK 1 (the classic level 1 word list of
   the official Chinese exam) in 14 themed units, after a starter unit on the four tones.
   Every lesson ends with original example sentences that only use words you already know.
-- **HSK 4 course (part 1)**: 8 themed units, 24 lessons and 168 words from the classic HSK 4 list
-  (character, strong feelings, opinions, jobs, university, health, tastes, shopping), each with original
-  example sentences, stroke-order writing and natural-voice audio. More units follow.
+- **HSK 4 course**: 25 themed units, 81 lessons and 572 words from the classic HSK 4 list
+  (character, strong feelings, opinions, jobs, university, health, linking words, time, numbers, travel,
+  nature, home, study, business, society, fun, thinking, describing, daily life, people and ways of
+  saying things), each with original example sentences, stroke-order writing and natural-voice audio.
 - **HSK 2 and HSK 3 courses** in the same lesson style: about 150 new words for HSK 2 and
   300 for HSK 3, continuing straight on from HSK 1. Switch level with the HSK 1 / 2 / 3 buttons
   on the home screen. The first lesson of each level is always open.
@@ -19,11 +20,13 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   on a daily reminder at the time you choose. If you've already reached the goal, that day's
   reminder is skipped. (On Windows, the app plans the next week of reminders each time it opens,
   so open it at least once a week.)
-- **Mini exams for HSK 1, 2 and 3**: timed tests in the style of the real HSK exams, with a
+- **Mini exams for HSK 1 to 4**: timed tests in the style of the real HSK exams, with a
   listening part and a reading part (true or false, pick the picture, pick the reply, fill the gap).
   HSK 1 and 2 are scored out of 200 (120 is a pass). HSK 3 adds a writing part where you pick the
-  missing character, and is scored out of 300 (180 is a pass). The Mini exam card opens the exam
-  for the level you have selected.
+  missing character, and is scored out of 300 (180 is a pass). HSK 4 is like the real HSK 4: hear or
+  read a short passage and say whether the ★ statement is right, pick replies, fill gaps, and put
+  words in the right order (300 points, 180 is a pass). The Mini exam card opens the exam for the
+  level you have selected.
 - **Speaking practice**: say a syllable or a word, and the app listens and checks your tones,
   drawing the pitch of your voice next to the shape it should have. It only checks tones, not
   the sounds themselves. On a Mac the app asks for the microphone the first time.
@@ -31,6 +34,18 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   and melody. Your tone line is then drawn over hers, with each syllable green (right tone) or red
   (tone to work on). Choose sentences from your finished lessons, dialogue lines or survival phrases.
   Space starts, Enter goes to the next sentence. Headphones help, so the microphone only hears you.
+- **Speak on a topic (说一说)**: 12 questions like the speaking part of the HSKK exam ("Describe your
+  weekend", "Is it better to live in a city or the countryside?"), from HSK 3 to 5 level, each with useful
+  words. Record yourself for up to a minute, then play your answer and Xiaoxiao's model answer one after
+  the other, and tick a short self-check. Nothing goes online.
+- **Role-play out loud**: in any dialogue, press "Role-play out loud" and say your lines into the
+  microphone instead of picking them. You see the line in English (the Chinese is a tap away), and each
+  line gets a tone score out of 100.
+- **Similar words (近义词)**: 27 pairs that mean nearly the same thing, such as 以为/认为, 改变/变化,
+  经验/经历 and 适合/合适, each with a plain explanation and example sentences. The drill leaves a word
+  out and asks which one fits; pairs you mix up come back more often.
+- **Reading practice (阅读)**: 8 original articles at HSK 4 and 5 level (news, opinions, stories, science),
+  each with three questions like the HSK reading test. Tap any word to hear it and see its meaning.
 - **Listening at real speed**: 10 short conversations and talks at HSK 3 and 4 level, read at natural
   speed by two voices (a woman, Xiaoxiao, and a man, Yunxi), each with three questions like the HSK
   listening test. After answering you see the words, pinyin and English. "A bit slower" plays at 80%.
@@ -39,7 +54,7 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
   and you pick its pair (pairs you miss come up more often), and "Say them" lets you speak them.
 - **Character stories**: new-word cards and the writing page show how a character is built
   from parts, with a memory hint, e.g. 口 mouth + 马 horse = 吗.
-- **Grammar tips**: 33 short cards inside lessons (吗, 的, 了, measure words and more), each with
+- **Grammar tips**: 43 short cards inside lessons (吗, 的, 了, measure words and more), each with
   examples that only use words you know. The Grammar card on the home screen lists them all.
 - **Dialogues**: 9 short conversations (a café, buying fruit, asking the way, at the doctor…).
   Listen to the other person, pick your reply from three, then say it aloud if you like.
@@ -88,7 +103,7 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 - **Survival phrases**: six travel packs (taxi, restaurant, hotel, shopping, directions, emergencies) with
   about 10 phrases each, the answers you are likely to hear, sound at normal and slow speed, a quiz and
   "Say them", which checks your tones on each phrase.
-- **Badges**: 40 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
+- **Badges**: 48 badges, from "First steps" to a 30-day streak. A banner slides in when you earn one.
 - **Stats & badges page**: XP for the last 14 days, how often you get each tone right, the
   tone pairs and words you miss most (with a button to practise those words), and your badges.
 - **Quick games**: Speed match (match characters and meanings against the clock) and Falling
@@ -204,7 +219,7 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 
 | What | File |
 |---|---|
-| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` (HSK 1), `lib/data/hsk2.dart`, `lib/data/hsk3.dart`, `lib/data/hsk4.dart` |
+| All lesson content (words, pinyin, meanings) | `lib/data/course.dart` (HSK 1), `lib/data/hsk2.dart`, `lib/data/hsk3.dart`, `lib/data/hsk4.dart`, `lib/data/hsk4b.dart` |
 | Daily goal reminders | `lib/logic/reminders.dart` |
 | Mini exam questions and screen | `lib/data/exam.dart`, `lib/logic/exam.dart`, `lib/screens/exam_screen.dart` |
 | Speaking practice (microphone, pitch, tones) | `lib/logic/recorder.dart`, `lib/logic/pitch.dart`, `lib/screens/speaking_screen.dart` |
@@ -245,6 +260,10 @@ Chrome installed, `flutter run -d chrome` opens the same app in a browser window
 | Reading Chinese aloud (recordings, then the computer's voice) | `lib/logic/speech.dart`, `assets/voice/`, `tool/make_voice.py` |
 | Shadowing | `lib/logic/shadowing.dart`, `lib/screens/shadowing_screen.dart`, `tool/make_pitch.dart` |
 | Listening at real speed | `lib/data/listening.dart`, `lib/screens/listening_screen.dart` |
+| Speak on a topic | `lib/data/topics.dart`, `lib/screens/topics_screen.dart` |
+| Role-play out loud | `lib/screens/dialogue_screen.dart` (uses `SayItButton` from `speaking_screen.dart`) |
+| Similar words | `lib/data/synonyms.dart`, `lib/screens/synonyms_screen.dart` |
+| Reading practice | `lib/data/reading.dart`, `lib/screens/reading_screen.dart` (articles open in the story reader) |
 | The lesson path (home screen) | `lib/screens/home_screen.dart` |
 | The lesson and quiz screens | `lib/screens/lesson_screen.dart` |
 
@@ -258,7 +277,7 @@ each tile must be a word taught in that lesson or earlier (the tests check this)
 `flutter test` plays through every lesson automatically and checks that no question
 has duplicate answers, that HSK 1 has exactly 150 words, that every sentence can be built
 from words already taught, and that review works. It also checks the daily goal, builds and
-plays through mini exams for all three levels, and checks the tone detector on made-up voice
+plays through mini exams for all four levels, and checks the tone detector on made-up voice
 recordings. It also checks that grammar examples and dialogues only use words already taught,
 that typed pinyin is marked right or wrong correctly, and plays through each game. It also checks how numbers
 are written and said, that look-alike examples and culture notes fit their lessons, the placement test,
@@ -268,6 +287,9 @@ It also checks that counting-word questions have exactly one right answer, that 
 their words can be looked up, the daily challenge counting and bonus, the version comparison for the
 update check, and the weekly report's numbers. For the pinyin chart, it checks that every syllable has four
 tones and no character is used twice; for survival phrases, that the pinyin has one syllable per character.
+For similar words, it checks that each example sentence uses its word exactly once; for reading articles, that
+every word can be tapped and every question has three different options; and it checks that everything the app
+reads aloud has a natural-voice recording.
 
 ## Not in this version yet
 

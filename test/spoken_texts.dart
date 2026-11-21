@@ -12,9 +12,12 @@ import 'package:hanzi_steps/data/listening.dart';
 import 'package:hanzi_steps/data/look_alikes.dart';
 import 'package:hanzi_steps/data/measure_words.dart';
 import 'package:hanzi_steps/data/radicals.dart';
+import 'package:hanzi_steps/data/reading.dart';
 import 'package:hanzi_steps/data/stories.dart';
 import 'package:hanzi_steps/data/survival.dart';
+import 'package:hanzi_steps/data/synonyms.dart';
 import 'package:hanzi_steps/data/textbook.dart';
+import 'package:hanzi_steps/data/topics.dart';
 import 'package:hanzi_steps/logic/numbers.dart';
 import 'package:hanzi_steps/logic/textbook.dart';
 
@@ -62,7 +65,7 @@ Set<String> spokenTexts() {
       q.options.forEach(add);
     }
   }
-  for (final k in [...storyExtras.keys, ...textbookExtras.keys, ...idiomExtras.keys]) {
+  for (final k in [...storyExtras.keys, ...textbookExtras.keys, ...idiomExtras.keys, ...readingExtras.keys]) {
     add(k);
   }
   // Textbook: lines and words, the whole text, new characters, exercises with answers filled in.
@@ -162,6 +165,36 @@ Set<String> spokenTexts() {
     for (final s in set.pictureSentences) {
       add(s.zh);
     }
+    for (final q in set.qas) {
+      add(q.q);
+    }
+    for (final j in set.judges) {
+      add(j.passage);
+    }
+  }
+  // Speaking topics: the question, the useful words and the model answer.
+  for (final t in speakTopics) {
+    add(t.question);
+    add(t.model);
+    for (final w in t.words) {
+      add(w.zh);
+    }
+  }
+  // Similar words and their example sentences.
+  for (final p in synonymPairs) {
+    for (final w in p.words) {
+      add(w.zh);
+    }
+    for (final e in p.examples) {
+      add(e.zh);
+    }
+  }
+  // Reading articles: each paragraph, each word, and the whole text.
+  for (final a in readingArticles) {
+    for (final p in a.paragraphs) {
+      addLine(p.zh);
+    }
+    add(a.text);
   }
   return out;
 }

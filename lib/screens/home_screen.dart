@@ -18,6 +18,9 @@ import '../data/look_alikes.dart';
 import '../data/textbook.dart';
 import '../data/idioms.dart';
 import '../data/radicals.dart';
+import '../data/reading.dart';
+import '../data/synonyms.dart';
+import '../data/topics.dart';
 import '../logic/daily_challenge.dart';
 import '../logic/version.dart';
 import '../logic/weekly_report.dart';
@@ -30,6 +33,9 @@ import 'measure_words_screen.dart';
 import 'memory_writing_screen.dart';
 import 'pinyin_chart_screen.dart';
 import 'radicals_screen.dart';
+import 'reading_screen.dart';
+import 'synonyms_screen.dart';
+import 'topics_screen.dart';
 import 'weekly_report_screen.dart';
 import 'dialogue_screen.dart';
 import 'dictation_screen.dart';
@@ -164,6 +170,13 @@ class HomeScreen extends StatelessWidget {
                         onTap: () => _push(context, StoriesScreen(progress: progress)),
                       ),
                       _ActivityTile(
+                        icon: Icons.newspaper,
+                        color: const Color(0xFF455A64),
+                        title: 'Reading practice',
+                        subtitle: '${progress.readingDone.length} of ${readingArticles.length} · HSK 4–5 articles',
+                        onTap: () => _push(context, ReadingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
                         icon: Icons.forum_outlined,
                         color: const Color(0xFF7B61FF),
                         title: 'Dialogues',
@@ -197,6 +210,13 @@ class HomeScreen extends StatelessWidget {
                         title: 'Shadowing',
                         subtitle: 'Repeat right after Xiaoxiao',
                         onTap: () => _push(context, ShadowingScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.campaign_outlined,
+                        color: const Color(0xFF8E24AA),
+                        title: 'Speak on a topic',
+                        subtitle: '${speakTopics.where((t) => progress.count('topic_${t.id}') > 0).length} of ${speakTopics.length} · talk for a minute',
+                        onTap: () => _push(context, TopicsScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.graphic_eq,
@@ -239,6 +259,13 @@ class HomeScreen extends StatelessWidget {
                         title: 'Look-alikes',
                         subtitle: '${lookAlikeGroups.length} groups like 人 · 入',
                         onTap: () => _push(context, LookAlikesScreen(progress: progress)),
+                      ),
+                      _ActivityTile(
+                        icon: Icons.join_inner,
+                        color: const Color(0xFFEF6C00),
+                        title: 'Similar words',
+                        subtitle: '${synonymPairs.length} pairs like 以为 · 认为',
+                        onTap: () => _push(context, SynonymsScreen(progress: progress)),
                       ),
                       _ActivityTile(
                         icon: Icons.format_list_numbered,

@@ -187,6 +187,55 @@ const grammarTips = <GrammarTip>[
     _E('我 把 作业 做 完 了 。', 'wǒ bǎ zuòyè zuò wán le.', "I've finished my homework."),
     _E('我 的 自行车 被 他 骑 走 了 。', 'wǒ de zìxíngchē bèi tā qí zǒu le.', 'My bike was ridden off by him.'),
   ]),
+  // ---------- HSK 4 ----------
+  GrammarTip('h4-link-1', 'Not only … but also: 不仅 … 而且 …', '不仅 A， 而且 B',
+      '不仅 … 而且 … (or 不但 … 而且 …) adds a second, stronger point: "not only A, but also B". 并且 can join two actions in the same way.', [
+    _E('他 不仅 会 唱歌 ， 而且 会 跳舞 。', 'tā bùjǐn huì chànggē, érqiě huì tiàowǔ.', 'He can not only sing but also dance.'),
+    _E('这 个 菜 不仅 便宜 ， 而且 很 好吃 。', 'zhège cài bùjǐn piányi, érqiě hěn hǎochī.', 'This dish is not only cheap but also tasty.'),
+  ]),
+  GrammarTip('h4-link-2', 'Whatever happens: 不管 … 都 …; as long as: 只要 … 就 …', '不管 A， 都 B / 只要 A， 就 B',
+      '不管 and 无论 ("no matter") are followed by a question word or two choices, and 都 comes in the second half. 只要 … 就 … means "as long as A, then B".', [
+    _E('不管 多 忙 ， 他 都 每 天 锻炼 。', 'bùguǎn duō máng, tā dōu měi tiān duànliàn.', 'However busy he is, he exercises every day.'),
+    _E('只要 你 喜欢 ， 就 买 吧 。', 'zhǐyào nǐ xǐhuan, jiù mǎi ba.', 'As long as you like it, buy it.'),
+  ]),
+  GrammarTip('h4-link-3', 'Because of … so: 由于 … 因此 …; but: 却', '由于 A， 因此 B / subject + 却 + verb',
+      '由于 … 因此 … is a more formal "because … so …". 却 means "but, yet". It goes after the subject and before the verb, never at the start of a sentence.', [
+    _E('由于 天气 不 好 ， 因此 我们 没有 去 爬山 。', 'yóuyú tiānqì bù hǎo, yīncǐ wǒmen méiyǒu qù páshān.', "Because the weather was bad, we didn't go hiking."),
+    _E('他 很 有 钱 ， 却 不 快乐 。', 'tā hěn yǒu qián, què bú kuàilè.', "He's rich, but he isn't happy."),
+  ]),
+  GrammarTip('h4-time-3', 'Never ever: 从来 不 / 从来 没有 … 过', '从来 + 不 / 没有 + verb (+ 过)',
+      '从来 makes "not" stronger. 从来不 is "never" as a habit; 从来没有 … 过 is "have never (once)".', [
+    _E('他 从来 不 喝 咖啡 。', 'tā cónglái bù hē kāfēi.', 'He never drinks coffee.'),
+    _E('我 从来 没有 看见 过 熊猫 。', 'wǒ cónglái méiyǒu kànjiànguo xióngmāo.', 'I have never seen a panda.'),
+  ]),
+  GrammarTip('h4-time-4', 'To my surprise: 竟然; sure enough: 果然', 'subject + 竟然 / 果然 + verb',
+      '竟然 shows surprise: "(to my surprise) he actually …". 果然 shows it happened just as you thought: "sure enough, …".', [
+    _E('他 竟然 忘记 了 我 的 生日 。', 'tā jìngrán wàngjì le wǒ de shēngrì.', 'He actually forgot my birthday!'),
+    _E('我 说 他 会 迟到 ， 他 果然 迟到 了 。', 'wǒ shuō tā huì chídào, tā guǒrán chídào le.', 'I said he would be late, and sure enough he was.'),
+  ]),
+  GrammarTip('h4-think-2', 'What on earth? 到底; surely not? 难道 … 吗', '到底 + question / 难道 … 吗？',
+      '到底 in a question shows you really want to know: "what on earth …?". 难道 … 吗？ asks a question whose answer is obvious, a bit like "Don\'t tell me …?"', [
+    _E('你 到底 去 不 去 ？', 'nǐ dàodǐ qù bu qù?', 'Are you going or not?'),
+    _E('难道 你 不 认识 我 了 吗 ？', 'nándào nǐ bú rènshi wǒ le ma?', "Don't you recognise me?"),
+  ]),
+  GrammarTip('h4-life-4', 'Any at all: 任何 … 都 …', '任何 + noun + 都 …',
+      '任何 means "any (at all)". 都 or 也 comes later in the sentence, before the verb.', [
+    _E('任何 人 都 可以 参加 。', 'rènhé rén dōu kěyǐ cānjiā.', 'Anyone can take part.'),
+  ]),
+  GrammarTip('h4-ppl-2', 'Becoming: 成为', '成为 + noun',
+      '成为 means "to become" and is followed by a noun: a doctor, good friends. For describing words, Chinese uses 变得 instead ("to turn cold" is 变得很冷).', [
+    _E('我们 成为 了 好 朋友 。', 'wǒmen chéngwéi le hǎo péngyou.', 'We became good friends.'),
+  ]),
+  GrammarTip('h4-say-1', 'Even: 连 … 都 / 也 …', '连 A 都 / 也 + verb',
+      '连 … 都 … means "even". It points at the most surprising case, and the verb comes after 都 or 也.', [
+    _E('连 孩子 都 会 做 这 个 题 。', 'lián háizi dōu huì zuò zhège tí.', 'Even a child could do this question.'),
+    _E('我 连 一 分钟 都 没有 休息 。', 'wǒ lián yì fēnzhōng dōu méiyǒu xiūxi.', "I didn't rest for even a minute."),
+  ]),
+  GrammarTip('h4-say-2', 'No other way: 只好 and 不得不', '只好 / 不得不 + verb',
+      'Both say you had to do something because there was no other choice. 只好 sounds resigned ("so I just …"); 不得不 is stronger ("had no choice but to").', [
+    _E('没有 出租车 ， 我们 只好 走 回 家 。', 'méiyǒu chūzūchē, wǒmen zhǐhǎo zǒu huí jiā.', 'There were no taxis, so we had to walk home.'),
+    _E('我 生病 了 ， 不得不 请假 。', 'wǒ shēngbìng le, bùdébù qǐngjià.', 'I was ill, so I had no choice but to take time off.'),
+  ]),
 ];
 
 /// The grammar tip shown in a lesson, if there is one.

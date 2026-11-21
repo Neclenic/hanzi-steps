@@ -122,10 +122,14 @@ class _Chip extends StatelessWidget {
 
 // ---------------- Reading ----------------
 
+/// What happens when a reading article (not a story) is finished: saves the result.
+typedef ArticleFinish = Future<void> Function(int right, int xp);
+
 class StoryReaderScreen extends StatefulWidget {
   final Story story;
   final Progress progress;
-  const StoryReaderScreen({super.key, required this.story, required this.progress});
+  final ArticleFinish? onArticleFinish; // set for reading articles
+  const StoryReaderScreen({super.key, required this.story, required this.progress, this.onArticleFinish});
 
   @override
   State<StoryReaderScreen> createState() => _StoryReaderScreenState();
@@ -159,7 +163,7 @@ class _StoryReaderScreenState extends State<StoryReaderScreen> {
             builder: (context, ok, _) => ok
                 ? IconButton(
                     icon: const Icon(Icons.volume_up),
-                    tooltip: 'Read the whole story aloud',
+                    tooltip: widget.onArticleFinish == null ? 'Read the whole story aloud' : 'Read the whole text aloud',
                     onPressed: () => Speech.instance.say(s.paragraphs.map((p) => p.text).join('')),
                   )
                 : const SizedBox.shrink(),
@@ -218,7 +222,7 @@ class _StoryReaderScreenState extends State<StoryReaderScreen> {
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(backgroundColor: _green, minimumSize: const Size(260, 52)),
                 onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (_) => StoryQuizScreen(story: s, progress: widget.progress),
+                  builder: (_) => StoryQuizScreen(story: s, progress: widget.progress, onArticleFinish: widget.onArticleFinish),
                 )),
                 icon: const Icon(Icons.quiz),
                 label: const Text('ANSWER THE QUESTIONS', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -324,7 +328,7 @@ class _WordSheetState extends State<_WordSheet> {
               ? 'HSK ${w.hskLevel} word'
               : course != null
                   ? 'Extra word from the course'
-                  : 'Not on the HSK 1–3 lists',
+                  : 'Not on the HSK 1–4 lists',
           style: TextStyle(color: scheme.onSurfaceVariant),
         ),
         if (course != null) ...[
@@ -355,7 +359,8 @@ class _WordSheetState extends State<_WordSheet> {
 class StoryQuizScreen extends StatefulWidget {
   final Story story;
   final Progress progress;
-  const StoryQuizScreen({super.key, required this.story, required this.progress});
+  final ArticleFinish? onArticleFinish;
+  const StoryQuizScreen({super.key, required this.story, required this.progress, this.onArticleFinish});
 
   @override
   State<StoryQuizScreen> createState() => _StoryQuizScreenState();
@@ -377,7 +382,11 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
       return;
     }
     _xp = 5 + _right * 5;
-    await widget.progress.finishStory(widget.story.id, _xp);
+    if (widget.onArticleFinish case final finish?) {
+      await finish(_right, _xp);
+    } else {
+      await widget.progress.finishStory(widget.story.id, _xp);
+    }
     setState(() => _done = true);
   }
 
@@ -462,7 +471,8 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
         Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
         const PopIn(child: Text('📖', style: TextStyle(fontSize: 64))),
         const SizedBox(height: 8),
-        const Text('Story finished!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+        Text(widget.onArticleFinish == null ? 'Story finished!' : 'Article finished!',
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text('$_right of ${widget.story.questions.length} answers right · +$_xp XP',
             style: TextStyle(fontSize: 18, color: scheme.onSurfaceVariant)),
@@ -470,7 +480,8 @@ class _StoryQuizScreenState extends State<StoryQuizScreen> {
         FilledButton(
           style: FilledButton.styleFrom(backgroundColor: _green, minimumSize: const Size(240, 52)),
           onPressed: () => Navigator.pop(context),
-          child: const Text('BACK TO STORIES', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(widget.onArticleFinish == null ? 'BACK TO STORIES' : 'BACK TO READING',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ])),
         if (_right > 0) const Positioned.fill(child: Confetti()),

@@ -119,6 +119,20 @@ class Speech {
     }
   }
 
+  /// Plays a recording made in the app (a WAV file in memory), e.g. your own answer.
+  Future<void> playBytes(Uint8List wav) async {
+    _sequence++;
+    try {
+      await _tts?.stop();
+      final player = _player ??= AudioPlayer();
+      await player.stop();
+      await player.setPlaybackRate(1.0);
+      await player.play(BytesSource(wav, mimeType: 'audio/wav'));
+    } catch (e) {
+      debugPrint('Could not play the recording: $e');
+    }
+  }
+
   /// Stops whatever is being said.
   Future<void> stop() async {
     _sequence++;
