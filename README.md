@@ -113,18 +113,23 @@ A first prototype of a beginner Chinese learning app. It runs on Windows and Mac
 
 ## Sound
 
-About 4,200 recordings of a natural Mandarin voice (Xiaoxiao, made with Azure neural text-to-speech)
-come with the app in `assets/voice`, so no internet is needed. They cover every course word, sentence,
-story, dialogue, textbook lesson, idiom, survival phrase and pinyin-chart character. Settings → Natural
-voice turns them off.
+About 5,100 recordings of a natural Mandarin voice (Xiaoxiao, made with Azure neural text-to-speech)
+come with the app in `assets/voice`, so no internet is needed. They cover everything the app reads
+aloud: every course word and its characters, sentence, story (and whole story), dialogue, textbook lesson
+and exercise, idiom, survival phrase, counting-word phrase (一本书, 两本书, 这本书), listening clip and
+pinyin-chart character. Prices, dates, times and phone numbers, which the app makes up while running,
+are read from about 400 short recorded pieces joined together (三十五块 + 五, 下午 + 两点 + 半).
+Settings → Natural voice turns them off.
 
 To record new text after adding content, run `python3 tool/make_voice.py --extra tool/voice_extra.txt`.
 It also records each listening clip in `lib/data/listening.dart` whole, as `listen-<id>.mp3`, with
 speaker A read by Xiaoxiao and speaker B by Yunxi. After recording new sentences, run
 `dart run tool/make_pitch.dart` (needs ffmpeg) to update `assets/voice/pitch.json`, the pitch lines
 of Xiaoxiao's voice that shadowing draws. It needs network access to the Azure Speech service (see the top of that file). The key is never stored
-in the project. `test/voice_test.dart` fails if a course word, dialogue line, idiom, phrase or chart
-character has no recording.
+in the project. `test/spoken_texts.dart` lists everything the app can read aloud, and
+`test/voice_coverage_test.dart` fails if any of it has no recording. It then writes what is missing to
+`build/voice_missing.txt` and `build/voice_pieces.txt`; record them with
+`python3 tool/make_voice.py --extra build/voice_missing.txt --pieces build/voice_pieces.txt`.
 
 Anything without a recording (for example randomly made numbers) is read by the Chinese voice that comes
 with your computer. If the app says "no Chinese voice found", add one and restart the app:

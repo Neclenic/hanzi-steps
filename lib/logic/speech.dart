@@ -99,6 +99,7 @@ class Speech {
   /// Plays a long recording such as a listening clip ([name] without .mp3) at [rate]
   /// (1.0 is natural speed). Falls back to reading [fallback] with the computer's voice.
   Future<void> playClip(String name, {double rate = 1.0, String? fallback}) async {
+    _sequence++;
     if (clips.contains(name)) {
       try {
         await _tts?.stop();
@@ -120,6 +121,7 @@ class Speech {
 
   /// Stops whatever is being said.
   Future<void> stop() async {
+    _sequence++;
     try {
       await _player?.stop();
       await _tts?.stop();
@@ -143,10 +145,28 @@ class Speech {
     await sub?.cancel();
   }
 
+  int _sequence = 0;
+
+  /// Plays recorded pieces one after another. Saying something else stops it.
+  Future<void> _playPieces(List<String> pieces, double rate) async {
+    final mine = ++_sequence;
+    await _tts?.stop();
+    final player = _player ??= AudioPlayer();
+    await player.stop();
+    await player.setPlaybackRate(rate);
+    for (final p in pieces) {
+      if (mine != _sequence) return;
+      final done = player.onPlayerComplete.first.timeout(const Duration(seconds: 3), onTimeout: () {});
+      await player.play(AssetSource('voice/${pieceName(p)}.mp3'));
+      await done;
+    }
+  }
+
   /// Say some Chinese text out loud. Safe to call even if there's no voice.
   /// [slow] reads it slowly whatever the speed setting is.
   Future<void> say(String hanzi, {bool slow = false}) async {
     if (!available.value) return;
+    _sequence++;
     final clip = clipName(hanzi);
     if (Settings.instance.naturalVoice && clips.contains(clip)) {
       try {
@@ -158,6 +178,19 @@ class Speech {
         return;
       } catch (e) {
         debugPrint('Recording failed, using the computer voice: $e');
+      }
+    }
+    // Numbers, prices, dates and times are made up while the app runs, so they are
+    // read from short recorded pieces instead (三十五块 + 五, 下午 + 两点 + 半).
+    if (Settings.instance.naturalVoice) {
+      final pieces = splitIntoPieces(hanzi, (t) => clips.contains(pieceName(t)));
+      if (pieces != null && pieces.isNotEmpty) {
+        try {
+          await _playPieces(pieces, slow ? 0.7 : (Settings.instance.speechSpeed == 0 ? 0.85 : 1.0));
+          return;
+        } catch (e) {
+          debugPrint('Recording failed, using the computer voice: $e');
+        }
       }
     }
     final tts = _tts;
@@ -177,3 +210,25 @@ class Speech {
 /// 我是学生 share one. tool/make_voice.py names the files the same way.
 String clipName(String text) =>
     sha1.convert(utf8.encode(text.replaceAll(RegExp(r'\s'), ''))).toString().substring(0, 12);
+
+/// The file name of a short recorded piece used to read numbers (see [splitIntoPieces]).
+/// Pieces are recorded with no silence around them, so they join up smoothly.
+String pieceName(String text) => 'n-${clipName(text)}';
+
+/// Splits [text] into recorded pieces, taking the longest piece that fits each time and
+/// skipping punctuation. Returns null if some part has no piece.
+List<String>? splitIntoPieces(String text, bool Function(String) has) {
+  final t = text.replaceAll(RegExp(r'[\s，。、？！,.:：]'), '');
+  final out = <String>[];
+  var i = 0;
+  while (i < t.length) {
+    var j = t.length < i + 8 ? t.length : i + 8;
+    while (j > i && !has(t.substring(i, j))) {
+      j--;
+    }
+    if (j == i) return null;
+    out.add(t.substring(i, j));
+    i = j;
+  }
+  return out;
+}

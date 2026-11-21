@@ -3,14 +3,16 @@
 Run from the project folder:  python3 tool/make_voice.py
 It finds the Chinese text in lib/ (every all-Chinese string, plus the "all four tones" lines of the
 pinyin chart), records each one that has no recording yet, and rewrites assets/voice/index.txt.
-Text the app builds while running (story paragraphs joined together and so on) can be added by
-listing it, one per line, in a file passed with --extra.
+Text the app builds while running (a whole story, 一本书, …) is listed by test/spoken_texts.dart:
+when test/voice_coverage_test.dart finds some without a recording, it writes them to
+build/voice_missing.txt (pass it with --extra) and missing number pieces to build/voice_pieces.txt
+(pass it with --pieces).
 
 It needs network access to swedencentral.api.cognitive.microsoft.com (with the Azure Speech key
 sent as the Ocp-Apim-Subscription-Key header, for example as a network secret of the cloud
 environment) and to swedencentral.tts.speech.microsoft.com. The key is never stored in the project.
 """
-import argparse, glob, hashlib, html, os, re, time, urllib.error, urllib.request
+import argparse, glob, hashlib, html, os, re, subprocess, time, urllib.error, urllib.request
 
 REGION = 'swedencentral'
 VOICE = 'zh-CN-XiaoxiaoNeural'
@@ -87,6 +89,14 @@ def find_listening():
     return out
 
 
+def piece_ssml(text):
+    """A short piece for reading numbers, with almost no silence around it so pieces join up."""
+    return ("<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' "
+            "xmlns:mstts='https://www.w3.org/2001/mstts' xml:lang='zh-CN'>"
+            f"<voice name='{VOICE}'><mstts:silence type='Leading-exact' value='0ms'/>"
+            f"<mstts:silence type='Tailing-exact' value='60ms'/>{html.escape(text)}</voice></speak>")
+
+
 def listening_ssml(lines):
     parts = [f"<voice name='{VOICES[s]}'>{html.escape(t)}<break time='350ms'/></voice>" for s, t in lines]
     return "<speak version='1.0' xml:lang='zh-CN'>" + ''.join(parts) + '</speak>'
@@ -95,6 +105,7 @@ def listening_ssml(lines):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--extra', help='a file with more text to record, one per line')
+    ap.add_argument('--pieces', help='a file of number pieces (see splitIntoPieces in lib/logic/speech.dart)')
     ap.add_argument('--list', action='store_true', help='only show what would be recorded')
     args = ap.parse_args()
     texts = find_texts(args.extra)
@@ -112,6 +123,20 @@ def main():
             open(path + '.tmp', 'wb').write(azure.record(ssml=listening_ssml(lines)))
             os.replace(path + '.tmp', path)
             print('Recorded listening clip', cid, flush=True)
+    # Number pieces are saved as n-<name>.mp3, apart from whole recordings of the same text.
+    if args.pieces:
+        pieces = [l.strip() for l in open(args.pieces, encoding='utf-8') if CJK.search(l)]
+        for p in pieces:
+            path = f'{OUT}/n-{clip_name(p)}.mp3'
+            if not os.path.exists(path):
+                open(path + '.tmp', 'wb').write(azure.record(ssml=piece_ssml(p)))
+                # Azure pads short audio with silence at the end; cut it off (needs ffmpeg).
+                subprocess.run(['ffmpeg', '-v', 'error', '-y', '-f', 'mp3', '-i', path + '.tmp', '-af',
+                                'areverse,silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.06,areverse',
+                                '-b:a', '48k', '-ac', '1', '-ar', '24000', '-f', 'mp3', path + '.cut'], check=True)
+                os.remove(path + '.tmp')
+                os.replace(path + '.cut', path)
+        print(f'{len(pieces)} number pieces ready', flush=True)
     for i, t in enumerate(todo, 1):
         data = azure.record(t)
         path = f'{OUT}/{clip_name(t)}.mp3'
