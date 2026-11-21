@@ -1,6 +1,6 @@
-// Questions for the mini exam, written in the style of the real HSK 1 test
-// (listening and reading, with pictures, answers to choose and gaps to fill).
-// Everything here is original and uses HSK 1 words only.
+// Questions for the mini exams, written in the style of the real HSK 1 to 4 tests
+// (listening and reading, with pictures, answers to choose and gaps to fill; HSK 3
+// and 4 also have a writing part). Everything here is original.
 
 /// A word with a picture, for "does the picture match?" questions.
 class PictureWord {
@@ -423,6 +423,149 @@ const examChars3 = <ExamChar>[
   ExamChar('他是我的（  ）居。', 'Tā shì wǒ de línjū.', 'lín', ['邻', '林', '临']),
 ];
 
+// ---------------- HSK 4 ----------------
+
+/// HSK 4: a short passage, and a statement (★) about it that is right or wrong.
+class ExamJudge {
+  final String passage;
+  final String passagePinyin;
+  final String statement;
+  final String statementPinyin;
+  final bool right;
+  const ExamJudge(this.passage, this.passagePinyin, this.statement, this.statementPinyin, this.right);
+}
+
+/// HSK 4 writing, mini version: words to put in order. In the real exam you write
+/// the sentence; here you pick the one in the right order.
+class ExamOrder {
+  final List<String> pieces; // shown mixed up, in this order
+  final List<String> options; // whole sentences; the first is right
+  final String pinyin; // of the right sentence
+  const ExamOrder(this.pieces, this.options, this.pinyin);
+}
+
+const examJudges4 = <ExamJudge>[
+  ExamJudge('我以前很少运动，后来医生说我应该多锻炼身体。现在我每天早上都去公园跑步，已经坚持了半年了。',
+      'Wǒ yǐqián hěn shǎo yùndòng, hòulái yīshēng shuō wǒ yīnggāi duō duànliàn shēntǐ. Xiànzài wǒ měi tiān zǎoshang dōu qù gōngyuán pǎobù, yǐjīng jiānchí le bàn nián le.',
+      '说话人现在经常运动。', 'Shuōhuàrén xiànzài jīngcháng yùndòng.', true),
+  ExamJudge('这家饭馆的菜虽然很好吃，但是价格太贵了，而且服务员的态度也不太好，所以我很少去。',
+      'Zhè jiā fànguǎn de cài suīrán hěn hǎochī, dànshì jiàgé tài guì le, érqiě fúwùyuán de tàidu yě bú tài hǎo, suǒyǐ wǒ hěn shǎo qù.',
+      '说话人经常去这家饭馆。', 'Shuōhuàrén jīngcháng qù zhè jiā fànguǎn.', false),
+  ExamJudge('小王，明天的会议改到下午三点了，请你通知一下其他同事。',
+      'Xiǎo Wáng, míngtiān de huìyì gǎi dào xiàwǔ sān diǎn le, qǐng nǐ tōngzhī yíxià qítā tóngshì.',
+      '会议的时间变了。', 'Huìyì de shíjiān biàn le.', true),
+  ExamJudge('我女儿从小就对音乐很感兴趣，五岁开始学弹钢琴。现在她已经是一名钢琴老师了。',
+      'Wǒ nǚ\'ér cóngxiǎo jiù duì yīnyuè hěn gǎn xìngqù, wǔ suì kāishǐ xué tán gāngqín. Xiànzài tā yǐjīng shì yì míng gāngqín lǎoshī le.',
+      '说话人的女儿不喜欢音乐。', 'Shuōhuàrén de nǚ\'ér bù xǐhuan yīnyuè.', false),
+  ExamJudge('很多人以为喝咖啡对身体不好，其实每天喝一两杯没有什么问题，只是晚上最好别喝，否则容易睡不着。',
+      'Hěn duō rén yǐwéi hē kāfēi duì shēntǐ bù hǎo, qíshí měi tiān hē yì liǎng bēi méiyǒu shénme wèntí, zhǐshì wǎnshang zuìhǎo bié hē, fǒuzé róngyì shuì bu zháo.',
+      '晚上喝咖啡可能会影响睡觉。', 'Wǎnshang hē kāfēi kěnéng huì yǐngxiǎng shuìjiào.', true),
+  ExamJudge('我们公司离地铁站很近，走路只要五分钟，所以我每天都坐地铁上班，从来没有迟到过。',
+      'Wǒmen gōngsī lí dìtiě zhàn hěn jìn, zǒulù zhǐ yào wǔ fēnzhōng, suǒyǐ wǒ měi tiān dōu zuò dìtiě shàngbān, cónglái méiyǒu chídào guo.',
+      '说话人上班经常迟到。', 'Shuōhuàrén shàngbān jīngcháng chídào.', false),
+  ExamJudge('这本书我已经看了三遍了，每次看都有新的感受。我建议你也买一本看看。',
+      'Zhè běn shū wǒ yǐjīng kàn le sān biàn le, měi cì kàn dōu yǒu xīn de gǎnshòu. Wǒ jiànyì nǐ yě mǎi yì běn kànkan.',
+      '说话人觉得这本书值得看。', 'Shuōhuàrén juéde zhè běn shū zhíde kàn.', true),
+  ExamJudge('今天雨下得特别大，路上堵车很严重。如果没有重要的事情，大家最好不要开车出门。',
+      'Jīntiān yǔ xià de tèbié dà, lù shang dǔchē hěn yánzhòng. Rúguǒ méiyǒu zhòngyào de shìqing, dàjiā zuìhǎo búyào kāichē chūmén.',
+      '今天天气很好。', 'Jīntiān tiānqì hěn hǎo.', false),
+  ExamJudge('我弟弟大学毕业以后，没有马上找工作，而是去南方旅游了三个月。他说想先了解一下这个世界。',
+      'Wǒ dìdi dàxué bìyè yǐhòu, méiyǒu mǎshàng zhǎo gōngzuò, ér shì qù nánfāng lǚyóu le sān ge yuè. Tā shuō xiǎng xiān liǎojiě yíxià zhège shìjiè.',
+      '弟弟毕业后马上就工作了。', 'Dìdi bìyè hòu mǎshàng jiù gōngzuò le.', false),
+  ExamJudge('学习语言最重要的是多听多说。不要害怕说错，说错了也没关系，别人一般都会原谅你的。',
+      'Xuéxí yǔyán zuì zhòngyào de shì duō tīng duō shuō. Búyào hàipà shuō cuò, shuō cuò le yě méi guānxi, biérén yìbān dōu huì yuánliàng nǐ de.',
+      '学语言不应该怕说错。', 'Xué yǔyán bù yīnggāi pà shuō cuò.', true),
+  ExamJudge('这台电脑是我去年买的，用了不到一年就坏了两次。我打算明天拿去商店，看看能不能换一台新的。',
+      'Zhè tái diànnǎo shì wǒ qùnián mǎi de, yòng le bú dào yì nián jiù huài le liǎng cì. Wǒ dǎsuàn míngtiān ná qù shāngdiàn, kànkan néng bu néng huàn yì tái xīn de.',
+      '说话人的电脑出了问题。', 'Shuōhuàrén de diànnǎo chū le wèntí.', true),
+  ExamJudge('李老师对学生要求很严格，但是大家都很喜欢她，因为她上课非常有意思，而且总是很耐心地回答问题。',
+      'Lǐ lǎoshī duì xuésheng yāoqiú hěn yángé, dànshì dàjiā dōu hěn xǐhuan tā, yīnwèi tā shàngkè fēicháng yǒu yìsi, érqiě zǒngshì hěn nàixīn de huídá wèntí.',
+      '学生们不喜欢李老师。', 'Xuéshengmen bù xǐhuan Lǐ lǎoshī.', false),
+  ExamJudge('周末的机票比平时贵很多，如果你的时间比较自由，可以选择周二或者周三出发，能省不少钱。',
+      'Zhōumò de jīpiào bǐ píngshí guì hěn duō, rúguǒ nǐ de shíjiān bǐjiào zìyóu, kěyǐ xuǎnzé zhōu\'èr huòzhě zhōusān chūfā, néng shěng bù shǎo qián.',
+      '周末的机票比较便宜。', 'Zhōumò de jīpiào bǐjiào piányi.', false),
+  ExamJudge('我奶奶今年八十岁了，身体还很健康。她每天早上都和邻居们一起在楼下打太极拳。',
+      'Wǒ nǎinai jīnnián bāshí suì le, shēntǐ hái hěn jiànkāng. Tā měi tiān zǎoshang dōu hé línjūmen yìqǐ zài lóu xià dǎ tàijíquán.',
+      '奶奶的身体很好。', 'Nǎinai de shēntǐ hěn hǎo.', true),
+];
+
+const examQAs4 = <ExamQA>[
+  ExamQA('你最近怎么瘦了这么多？', 'Nǐ zuìjìn zěnme shòu le zhème duō?', [
+    ('我每天晚饭后都去跑步。', 'Wǒ měi tiān wǎnfàn hòu dōu qù pǎobù.'),
+    ('这件衣服有点儿瘦。', 'Zhè jiàn yīfu yǒudiǎnr shòu.'),
+    ('我最近胖了两公斤。', 'Wǒ zuìjìn pàng le liǎng gōngjīn.'),
+  ]),
+  ExamQA('你觉得这份工作怎么样？', 'Nǐ juéde zhè fèn gōngzuò zěnmeyàng?', [
+    ('工资不错，就是压力有点儿大。', 'Gōngzī búcuò, jiùshì yālì yǒudiǎnr dà.'),
+    ('我是去年九月毕业的。', 'Wǒ shì qùnián jiǔ yuè bìyè de.'),
+    ('他明天去面试。', 'Tā míngtiān qù miànshì.'),
+  ]),
+  ExamQA('你能不能把空调关小一点儿？', 'Nǐ néng bu néng bǎ kōngtiáo guān xiǎo yìdiǎnr?', [
+    ('好的，你是不是觉得冷？', 'Hǎo de, nǐ shì bu shì juéde lěng?'),
+    ('空调是上个月买的。', 'Kōngtiáo shì shàng ge yuè mǎi de.'),
+    ('今天外面特别热闹。', 'Jīntiān wàimian tèbié rènao.'),
+  ]),
+  ExamQA('你怎么没参加昨天的聚会？', 'Nǐ zěnme méi cānjiā zuótiān de jùhuì?', [
+    ('我突然有事，实在走不开。', 'Wǒ tūrán yǒu shì, shízài zǒu bu kāi.'),
+    ('聚会在一家咖啡馆举行。', 'Jùhuì zài yì jiā kāfēiguǎn jǔxíng.'),
+    ('我很喜欢参加聚会。', 'Wǒ hěn xǐhuan cānjiā jùhuì.'),
+  ]),
+  ExamQA('这个问题你是怎么解决的？', 'Zhège wèntí nǐ shì zěnme jiějué de?', [
+    ('我上网查了很多资料。', 'Wǒ shàngwǎng chá le hěn duō zīliào.'),
+    ('这个问题很重要。', 'Zhège wèntí hěn zhòngyào.'),
+    ('我明天才有时间。', 'Wǒ míngtiān cái yǒu shíjiān.'),
+  ]),
+  ExamQA('你打算什么时候回国？', 'Nǐ dǎsuàn shénme shíhou huí guó?', [
+    ('等签证办好了就回去。', 'Děng qiānzhèng bàn hǎo le jiù huíqu.'),
+    ('我回国坐了十个小时飞机。', 'Wǒ huí guó zuò le shí ge xiǎoshí fēijī.'),
+    ('我的国家很美。', 'Wǒ de guójiā hěn měi.'),
+  ]),
+  ExamQA('麻烦你帮我把这封信寄出去，好吗？', 'Máfan nǐ bāng wǒ bǎ zhè fēng xìn jì chūqu, hǎo ma?', [
+    ('没问题，我正好要去邮局。', 'Méi wèntí, wǒ zhènghǎo yào qù yóujú.'),
+    ('这封信是我妈妈写的。', 'Zhè fēng xìn shì wǒ māma xiě de.'),
+    ('我昨天收到了你的信。', 'Wǒ zuótiān shōudào le nǐ de xìn.'),
+  ]),
+  ExamQA('你对这次比赛的结果满意吗？', 'Nǐ duì zhè cì bǐsài de jiéguǒ mǎnyì ma?', [
+    ('还行，不过我觉得还能做得更好。', 'Hái xíng, búguò wǒ juéde hái néng zuò de gèng hǎo.'),
+    ('比赛下午两点开始。', 'Bǐsài xiàwǔ liǎng diǎn kāishǐ.'),
+    ('我们队有十一个人。', 'Wǒmen duì yǒu shíyī ge rén.'),
+  ]),
+];
+
+const examGaps4 = <ExamGap>[
+  ExamGap('他（  ）会说汉语，而且还会说日语。', 'Tā (  ) huì shuō Hànyǔ, érqiě hái huì shuō Rìyǔ.', ['不仅', '不管', '尽管']),
+  ExamGap('（  ）天气怎么样，我们都要按时出发。', '(  ) tiānqì zěnmeyàng, wǒmen dōu yào ànshí chūfā.', ['不管', '虽然', '因为']),
+  ExamGap('我（  ）他是中国人，原来他是新加坡人。', 'Wǒ (  ) tā shì Zhōngguórén, yuánlái tā shì Xīnjiāpōrén.', ['以为', '希望', '认为']),
+  ExamGap('他练习了一年，（  ）通过了考试。', 'Tā liànxí le yì nián, (  ) tōngguò le kǎoshì.', ['终于', '从来', '一直']),
+  ExamGap('请大家（  ）顺序排队上车。', 'Qǐng dàjiā (  ) shùnxù páiduì shàng chē.', ['按照', '为了', '关于']),
+  ExamGap('他（  ）忙，也会每周给父母打电话。', 'Tā (  ) máng, yě huì měi zhōu gěi fùmǔ dǎ diànhuà.', ['再', '更', '太']),
+  ExamGap('（  ）明天下雨，我们也要去。', '(  ) míngtiān xià yǔ, wǒmen yě yào qù.', ['即使', '因为', '所以']),
+  ExamGap('大家（  ）这个计划都很满意。', 'Dàjiā (  ) zhège jìhuà dōu hěn mǎnyì.', ['对', '向', '往']),
+  ExamGap('我（  ）没去过上海，你给我介绍一下吧。', 'Wǒ (  ) méi qù guo Shànghǎi, nǐ gěi wǒ jièshào yíxià ba.', ['从来', '已经', '刚才']),
+  ExamGap('由于下大雨，比赛（  ）推迟了。', 'Yóuyú xià dà yǔ, bǐsài (  ) tuīchí le.', ['只好', '只要', '不管']),
+  ExamGap('这件衣服的颜色和样子都很好，（  ）有点儿贵。', 'Zhè jiàn yīfu de yánsè hé yàngzi dōu hěn hǎo, (  ) yǒudiǎnr guì.', ['不过', '而且', '所以']),
+  ExamGap('你（  ）去哪儿，都要注意安全。', 'Nǐ (  ) qù nǎr, dōu yào zhùyì ānquán.', ['无论', '虽然', '因为']),
+];
+
+const examOrders4 = <ExamOrder>[
+  ExamOrder(['弟弟', '借走了', '那本书', '被'], ['那本书被弟弟借走了。', '弟弟被那本书借走了。', '那本书弟弟被借走了。'],
+      'Nà běn shū bèi dìdi jiè zǒu le.'),
+  ExamOrder(['打扫', '把', '干净了', '他', '房间'], ['他把房间打扫干净了。', '他房间把打扫干净了。', '把他房间打扫干净了。'],
+      'Tā bǎ fángjiān dǎsǎo gānjìng le.'),
+  ExamOrder(['比', '去年', '今年的冬天', '冷多了'], ['今年的冬天比去年冷多了。', '今年的冬天冷多了比去年。', '比今年的冬天去年冷多了。'],
+      'Jīnnián de dōngtiān bǐ qùnián lěng duō le.'),
+  ExamOrder(['我', '一个小时', '等了', '他'], ['我等了他一个小时。', '我一个小时等了他。', '他一个小时我等了。'],
+      'Wǒ děng le tā yí ge xiǎoshí.'),
+  ExamOrder(['让', '这个消息', '很', '大家', '吃惊'], ['这个消息让大家很吃惊。', '大家让这个消息很吃惊。', '这个消息大家让很吃惊。'],
+      'Zhège xiāoxi ràng dàjiā hěn chījīng.'),
+  ExamOrder(['得', '他', '流利', '说', '汉语', '很'], ['他汉语说得很流利。', '他说汉语得很流利。', '他汉语很说得流利。'],
+      'Tā Hànyǔ shuō de hěn liúlì.'),
+  ExamOrder(['越来越', '天气', '了', '暖和'], ['天气越来越暖和了。', '越来越天气暖和了。', '天气暖和越来越了。'],
+      'Tiānqì yuè lái yuè nuǎnhuo le.'),
+  ExamOrder(['是', '的', '坐火车', '我', '来'], ['我是坐火车来的。', '我坐火车是来的。', '是我坐火车的来。'],
+      'Wǒ shì zuò huǒchē lái de.'),
+];
+
 /// Everything one level's mini exam is made from.
 class ExamSet {
   final int level;
@@ -430,12 +573,16 @@ class ExamSet {
   final List<PictureSentence> pictureSentences;
   final List<ExamQA> qas;
   final List<ExamGap> gaps;
-  final List<ExamChar> chars; // only HSK 3 has a writing part
-  const ExamSet(this.level, this.pictureWords, this.pictureSentences, this.qas, this.gaps, {this.chars = const []});
+  final List<ExamChar> chars; // HSK 3 writing: the missing character
+  final List<ExamJudge> judges; // HSK 4: is the statement right?
+  final List<ExamOrder> orders; // HSK 4 writing: words in the right order
+  const ExamSet(this.level, this.pictureWords, this.pictureSentences, this.qas, this.gaps,
+      {this.chars = const [], this.judges = const [], this.orders = const []});
 }
 
 const examSets = {
   1: ExamSet(1, examPictureWords, examPictureSentences, examQAs, examGaps),
   2: ExamSet(2, examPictureWords2, examPictureSentences2, examQAs2, examGaps2),
   3: ExamSet(3, examPictureWords3, examPictureSentences3, examQAs3, examGaps3, chars: examChars3),
+  4: ExamSet(4, [], [], examQAs4, examGaps4, judges: examJudges4, orders: examOrders4),
 };

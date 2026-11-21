@@ -198,7 +198,7 @@ void main() {
     Speech.instance.available.value = true;
     await Settings.instance.load();
     final progress = await Progress.load();
-    await tester.binding.setSurfaceSize(const Size(900, 1600));
+    await tester.binding.setSurfaceSize(const Size(900, 2200));
     await tester.pumpWidget(MaterialApp(home: HomeScreen(progress: progress)));
     await tester.pumpAndSettle();
     expect(find.text('Daily goal: 20 XP'), findsOneWidget);

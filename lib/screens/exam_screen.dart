@@ -35,9 +35,14 @@ class ExamIntroScreen extends StatelessWidget {
             Text('A practice test in the style of the real HSK $level exam',
                 textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             const SizedBox(height: 24),
-            _Row(Icons.headphones, 'Part 1: Listening', '$examQuestionsPerPart questions. Each recording can be played twice, like in the real exam.'),
-            _Row(Icons.chrome_reader_mode_outlined, 'Part 2: Reading', '$examQuestionsPerPart questions: pictures, replies and gaps to fill.'),
-            if (level >= 3)
+            _Row(Icons.headphones, 'Part 1: Listening',
+                '$examQuestionsPerPart questions${level >= 4 ? ': is a statement right, and which reply fits' : ''}. Each recording can be played twice, like in the real exam.'),
+            _Row(Icons.chrome_reader_mode_outlined, 'Part 2: Reading',
+                level >= 4 ? '$examQuestionsPerPart questions: gaps to fill, and short texts to read.' : '$examQuestionsPerPart questions: pictures, replies and gaps to fill.'),
+            if (level >= 4)
+              const _Row(Icons.edit_outlined, 'Part 3: Writing',
+                  '$examWritingQuestions questions: put the words in the right order. In the real exam you write the sentence.')
+            else if (level >= 3)
               const _Row(Icons.edit_outlined, 'Part 3: Writing',
                   '$examWritingQuestions questions: pick the missing character from its pinyin. In the real exam you write it by hand.'),
             _Row(Icons.timer_outlined, '${time.inMinutes} minutes', 'The clock keeps running. Unanswered questions score nothing.'),
@@ -312,12 +317,27 @@ class _ExamScreenState extends State<ExamScreen> {
                   ),
                 if (showText && q.text != null && !(listening && q.trueFalse && _voice)) ...[
                   const SizedBox(height: 12),
-                  Center(child: Text(q.text!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 34))),
+                  Center(
+                      child: Text(q.text!, textAlign: TextAlign.center, style: TextStyle(fontSize: q.text!.length > 20 ? 22 : 34))),
                   if (Settings.instance.showPinyin && q.textPinyin != null && q.textPinyin!.isNotEmpty)
                     Center(
                       child: Text(q.textPinyin!,
                           textAlign: TextAlign.center, style: TextStyle(fontSize: 17, color: scheme.onSurfaceVariant)),
                     ),
+                ],
+                if (q.statement != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(14)),
+                    child: Column(children: [
+                      Text('★ ${q.statement}',
+                          textAlign: TextAlign.center, style: TextStyle(fontSize: 24, color: scheme.onPrimaryContainer)),
+                      if (Settings.instance.showPinyin && q.statementPinyin != null)
+                        Text(q.statementPinyin!,
+                            textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: scheme.onPrimaryContainer)),
+                    ]),
+                  ),
                 ],
                 const SizedBox(height: 24),
                 if (q.options.every((o) => o.picture != null))
@@ -464,7 +484,7 @@ class _ExamScreenState extends State<ExamScreen> {
               child: ListTile(
                 leading: Text(q.picture ?? switch (q.part) { ExamPart.listening => '🎧', ExamPart.reading => '📖', ExamPart.writing => '✏️' },
                     style: const TextStyle(fontSize: 28)),
-                title: Text(q.text ?? ''),
+                title: Text(q.statement == null ? q.text ?? '' : '${q.text ?? ''}\n★ ${q.statement}'),
                 subtitle: Text('${q.textPinyin ?? ''}\n'
                     'Right answer: ${_describe(q, q.correct)}'
                     '${_answers[i] == null ? ' · not answered' : ' · you chose ${_describe(q, _answers[i]!)}'}'),
@@ -490,7 +510,7 @@ class _ExamScreenState extends State<ExamScreen> {
 
   String _describe(ExamQuestion q, int i) {
     final o = q.options[i];
-    if (q.trueFalse) return i == 0 ? '✓ matches' : "✗ doesn't match";
+    if (q.trueFalse) return '${o.label} ${o.pinyin ?? ''}';
     return o.picture ?? o.label;
   }
 }

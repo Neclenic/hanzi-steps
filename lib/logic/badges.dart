@@ -4,9 +4,11 @@ import '../data/course.dart';
 import '../data/dialogues.dart';
 import '../data/idioms.dart';
 import '../data/listening.dart';
+import '../data/reading.dart';
 import '../data/survival.dart';
 import '../data/stories.dart';
 import '../data/textbook.dart';
+import '../data/topics.dart';
 import 'panda.dart';
 import 'progress.dart';
 import 'tone_pairs.dart';
@@ -56,7 +58,8 @@ final badges = <HsBadge>[
   HsBadge('pairs', '🎵', 'Tone master', 'Get each of the 20 tone pairs right in the tone quiz.', 20, _pairsRight),
   HsBadge('typed50', '⌨️', 'Pinyin typist', 'Type 50 words right.', 50, (p) => p.count('typedRight')),
   HsBadge('exam', '📝', 'Exam ready', 'Pass a mini exam.', 1, (p) => p.examsPassed.length),
-  HsBadge('exam-all', '🎓', 'Graduate', 'Pass the HSK 1, 2 and 3 mini exams.', 3, (p) => p.examsPassed.length),
+  HsBadge('exam-all', '🎓', 'Graduate', 'Pass three different mini exams.', 3, (p) => p.examsPassed.length),
+  HsBadge('exam4', '🥇', 'HSK 4 ready', 'Pass the HSK 4 mini exam.', 1, (p) => p.examsPassed.contains(4) ? 1 : 0),
   HsBadge('exam-full', '💯', 'Top marks', 'Get full marks in a mini exam.', 1, (p) => p.examFullMarks ? 1 : 0),
   HsBadge('game20', '🎮', 'High score', 'Score 20 in a quick game.', 20, _bestGame),
   HsBadge('numbers30', '💴', 'Number cruncher', 'Get 30 number questions right.', 30, (p) => p.count('numbersRight')),
@@ -78,6 +81,12 @@ final badges = <HsBadge>[
   HsBadge('listening', '🎧', 'Sharp ears', 'Answer the questions of every real-speed listening clip.', listenClips.length,
       (p) => p.listenDone.length),
   HsBadge('shadow50', '🦜', 'Echo', 'Shadow 50 sentences.', 50, (p) => p.count('shadowed')),
+  HsBadge('topics5', '🎙️', 'Speaker', 'Answer 5 speaking topics out loud.', 5,
+      (p) => speakTopics.where((t) => p.count('topic_${t.id}') > 0).length),
+  HsBadge('roleplay20', '🎭', 'Actor', 'Say 20 role-play lines out loud with good tones.', 20, (p) => p.count('roleplayGood')),
+  HsBadge('synonyms30', '🔎', 'Word detective', 'Get 30 similar-word questions right.', 30, (p) => p.count('synonymRight')),
+  HsBadge('reading', '📰', 'Avid reader', 'Answer the questions of every reading article.', readingArticles.length,
+      (p) => p.readingDone.length),
 ];
 
 /// The ids of the badges earned so far.

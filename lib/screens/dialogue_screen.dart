@@ -13,7 +13,8 @@ import '../widgets/anim.dart';
 import '../widgets/word_sheet.dart';
 import '../widgets/quiz_parts.dart';
 import 'lesson_screen.dart' show SpeakButton;
-import 'speaking_screen.dart' show SayItButton;
+import '../logic/shadowing.dart' show shadowScore;
+import 'speaking_screen.dart' show SayItButton, SpeakCheck;
 
 /// The HSK level a dialogue needs: the highest level of its words.
 int dialogueLevel(Dialogue d) {
@@ -94,6 +95,11 @@ class _DialogueScreenState extends State<DialogueScreen> {
   final _random = Random();
   final _scroll = ScrollController();
   bool _started = false;
+  bool _speakMode = false; // say your lines out loud instead of picking them
+  bool _yourTurn = false; // speak mode: waiting for you to say your line
+  bool _hint = false; // speak mode: the Chinese of your line is shown
+  int? _lineScore; // speak mode: tone score of your best try at this line
+  final Map<int, int> _lineScores = {};
   int _shown = 0; // how many lines are in the chat so far
   List<(String, String)> _options = const [];
   int? _wrongPick;
@@ -113,9 +119,38 @@ class _DialogueScreenState extends State<DialogueScreen> {
     super.dispose();
   }
 
-  void _start() {
-    setState(() => _started = true);
+  void _start({bool speak = false}) {
+    setState(() {
+      _started = true;
+      _speakMode = speak;
+    });
     _advance();
+  }
+
+  /// Speak mode: your line was checked.
+  void _spoken(SpeakCheck check) {
+    if (check.problem != null) return;
+    final checked = check.heard.where((h) => h != null).length;
+    final right = [for (var i = 0; i < check.heard.length; i++) if (check.heard[i] != null && check.syllableOk(i)) i].length;
+    final score = shadowScore(right, checked);
+    setState(() {
+      _lineScore = max(_lineScore ?? 0, score);
+      _lineScores[_shown] = _lineScore!;
+    });
+  }
+
+  /// Speak mode: put your line in the chat and go on.
+  void _sayDone() {
+    final line = _lines[_shown];
+    setState(() {
+      _yourTurn = false;
+      _shown++;
+    });
+    Speech.instance.say(line.hanzi);
+    _scrollDown();
+    Future<void>.delayed(Duration(milliseconds: Speech.instance.available.value ? 500 + 150 * line.hanzi.length : 300), () {
+      if (mounted) _advance();
+    });
   }
 
   /// Shows the next line. The other person's lines are shown one after another;
@@ -135,6 +170,15 @@ class _DialogueScreenState extends State<DialogueScreen> {
       return;
     }
     final line = _lines[_shown];
+    if (_speakMode) {
+      setState(() {
+        _yourTurn = true;
+        _hint = false;
+        _lineScore = null;
+      });
+      _scrollDown();
+      return;
+    }
     final opts = [(line.zh, line.pinyin), ...line.wrong]..shuffle(_random);
     setState(() {
       _options = opts;
@@ -172,7 +216,17 @@ class _DialogueScreenState extends State<DialogueScreen> {
     _advance();
   }
 
+  int get _goodLines => _lineScores.values.where((v) => v >= 80).length;
+
   Future<void> _finish() async {
+    if (_speakMode) {
+      _xp = 5 + 3 * _goodLines;
+      await widget.progress.bump('roleplayLines', _lineScores.length);
+      await widget.progress.bump('roleplayGood', _goodLines);
+      await widget.progress.finishDialogue(widget.dialogue.id, _xp);
+      if (mounted) setState(() => _finished = true);
+      return;
+    }
     _xp = 5 + 2 * _firstTry;
     await widget.progress.finishDialogue(widget.dialogue.id, _xp);
     if (mounted) setState(() => _finished = true);
@@ -185,8 +239,10 @@ class _DialogueScreenState extends State<DialogueScreen> {
       _finished = false;
       _options = const [];
       _answered = false;
+      _yourTurn = false;
+      _lineScores.clear();
     });
-    _start();
+    _start(speak: _speakMode);
   }
 
   void _scrollDown() => WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -209,6 +265,8 @@ class _DialogueScreenState extends State<DialogueScreen> {
         _start();
       } else if (_answered) {
         _continue();
+      } else if (_speakMode && _yourTurn) {
+        _sayDone();
       }
       return KeyEventResult.handled;
     }
@@ -239,10 +297,10 @@ class _DialogueScreenState extends State<DialogueScreen> {
             child: _finished
                 ? RoundResults(
                     title: 'Conversation done!',
-                    right: _firstTry,
+                    right: _speakMode ? _goodLines : _firstTry,
                     total: _yourLines,
                     xp: _xp,
-                    note: 'Replies you picked right the first time.',
+                    note: _speakMode ? 'Lines you said with 80 or more for tones.' : 'Replies you picked right the first time.',
                     onAgain: _restart,
                   )
                 : !_started
@@ -279,7 +337,7 @@ class _DialogueScreenState extends State<DialogueScreen> {
             textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 24),
         SizedBox(
-          width: 240,
+          width: 260,
           height: 52,
           child: FilledButton(
             style: FilledButton.styleFrom(backgroundColor: quizGreen),
@@ -287,6 +345,19 @@ class _DialogueScreenState extends State<DialogueScreen> {
             child: const Text('START', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: 260,
+          height: 48,
+          child: OutlinedButton.icon(
+            onPressed: () => _start(speak: true),
+            icon: const Icon(Icons.mic),
+            label: const Text('Role-play out loud'),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text('Say your lines into the microphone instead of picking them.',
+            textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
       ]),
     );
   }
@@ -348,6 +419,61 @@ class _DialogueScreenState extends State<DialogueScreen> {
 
   Widget _bottom() {
     final scheme = Theme.of(context).colorScheme;
+    if (_speakMode && _yourTurn) {
+      final line = _lines[_shown];
+      final score = _lineScore;
+      return Container(
+        color: scheme.surfaceContainerLow,
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          const Text('Your turn. Say it in Chinese:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text('"${line.en}"', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          if (_hint)
+            Row(children: [
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(line.hanzi, style: const TextStyle(fontSize: 22)),
+                  if (Settings.instance.showPinyin) Text(line.pinyin, style: TextStyle(color: scheme.primary)),
+                ]),
+              ),
+              SpeakButton(line.hanzi, size: 32),
+            ])
+          else
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => setState(() => _hint = true),
+                icon: const Icon(Icons.lightbulb_outline),
+                label: const Text('Show the Chinese'),
+              ),
+            ),
+          SayItButton(
+            key: ValueKey('roleplay$_shown'),
+            pinyin: line.pinyin,
+            progress: widget.progress,
+            onChecked: _spoken,
+            idleText: 'Press the microphone and say your line',
+          ),
+          if (score != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text('Tones: $score / 100',
+                  style: TextStyle(fontWeight: FontWeight.bold, color: score >= 80 ? quizGreen : quizRed)),
+            ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 48,
+            child: FilledButton(
+              style: FilledButton.styleFrom(backgroundColor: quizGreen),
+              onPressed: _sayDone,
+              child: Text(score == null ? 'SKIP' : 'CONTINUE', style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ]),
+      );
+    }
     if (_answered) {
       final line = _lines[_shown - 1];
       return Container(

@@ -77,3 +77,48 @@ class VoiceRecorder {
     level.dispose();
   }
 }
+
+/// [samples] (from -1 to 1) as a 16-bit mono WAV file, so a recording can be played back.
+Uint8List toWav(List<double> samples, {int rate = sampleRate}) {
+  final data = ByteData(44 + samples.length * 2);
+  void text(int at, String s) {
+    for (var i = 0; i < s.length; i++) {
+      data.setUint8(at + i, s.codeUnitAt(i));
+    }
+  }
+
+  text(0, 'RIFF');
+  data.setUint32(4, 36 + samples.length * 2, Endian.little);
+  text(8, 'WAVE');
+  text(12, 'fmt ');
+  data.setUint32(16, 16, Endian.little);
+  data.setUint16(20, 1, Endian.little); // plain PCM
+  data.setUint16(22, 1, Endian.little); // mono
+  data.setUint32(24, rate, Endian.little);
+  data.setUint32(28, rate * 2, Endian.little);
+  data.setUint16(32, 2, Endian.little);
+  data.setUint16(34, 16, Endian.little);
+  text(36, 'data');
+  data.setUint32(40, samples.length * 2, Endian.little);
+  for (var i = 0; i < samples.length; i++) {
+    data.setInt16(44 + i * 2, (samples[i].clamp(-1.0, 1.0) * 32767).round(), Endian.little);
+  }
+  return data.buffer.asUint8List();
+}
+
+/// Roughly how many seconds of [samples] are speech rather than silence.
+double spokenSeconds(List<double> samples, {int rate = sampleRate}) {
+  final frame = rate ~/ 50; // 20 ms
+  final energies = <double>[];
+  for (var i = 0; i + frame <= samples.length; i += frame) {
+    var e = 0.0;
+    for (var j = i; j < i + frame; j++) {
+      e += samples[j] * samples[j];
+    }
+    energies.add(sqrt(e / frame));
+  }
+  if (energies.isEmpty) return 0;
+  final loudest = energies.reduce(max);
+  if (loudest < 0.01) return 0;
+  return energies.where((e) => e > max(0.008, loudest * 0.12)).length / 50;
+}

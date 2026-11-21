@@ -540,7 +540,17 @@ class _PitchPainter extends CustomPainter {
 class SayItButton extends StatefulWidget {
   final String pinyin;
   final Progress progress;
-  const SayItButton({super.key, required this.pinyin, required this.progress});
+
+  /// Called after each recording has been checked.
+  final void Function(SpeakCheck check)? onChecked;
+  final String idleText;
+  const SayItButton({
+    super.key,
+    required this.pinyin,
+    required this.progress,
+    this.onChecked,
+    this.idleText = 'Say it yourself (checks your tones)',
+  });
 
   @override
   State<SayItButton> createState() => _SayItButtonState();
@@ -599,6 +609,7 @@ class _SayItButtonState extends State<SayItButton> {
       await widget.progress.recordTone(check.expected[i], check.syllableOk(i));
     }
     if (check.ok) await widget.progress.bump('speakRight');
+    widget.onChecked?.call(check);
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -627,7 +638,7 @@ class _SayItButtonState extends State<SayItButton> {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            _recording ? 'Listening… say it now' : _busy ? 'Checking…' : _message ?? 'Say it yourself (checks your tones)',
+            _recording ? 'Listening… say it now' : _busy ? 'Checking…' : _message ?? widget.idleText,
             style: TextStyle(color: _message != null && _ok ? _green : scheme.onSurfaceVariant),
           ),
         ),

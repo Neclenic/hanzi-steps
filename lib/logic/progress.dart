@@ -438,6 +438,34 @@ class Progress extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ---- Reading practice ----
+  Set<String> get readingDone => (_prefs.getStringList('readDone') ?? const []).toSet();
+
+  /// Best score for each reading article, e.g. 2 (of 3 questions).
+  int readingBest(String id) => (_json('readBest')[id] as num?)?.toInt() ?? 0;
+
+  Future<void> finishReading(String id, int right, int earnedXp) async {
+    await _prefs.setStringList('readDone', {...readingDone, id}.toList());
+    final best = _json('readBest');
+    if (right > ((best[id] as num?) ?? 0)) {
+      best[id] = right;
+      await _prefs.setString('readBest', jsonEncode(best));
+    }
+    await _count('readRuns');
+    await _addXp(earnedXp);
+    notifyListeners();
+  }
+
+  // ---- Words with similar meanings ----
+
+  /// Right and total answers for each pair of similar words, as {"yiwei-renwei": (right, total)}.
+  Map<String, (int, int)> get synonymStats => _rightTotal('synStats');
+
+  Future<void> recordSynonym(String pairId, bool right) async {
+    await _addRightTotal('synStats', pairId, right);
+    notifyListeners();
+  }
+
   // ---- My word list ----
 
   /// Words the learner saved to their own list, newest first.
@@ -555,7 +583,8 @@ class Progress extends ChangeNotifier {
     for (final k in ['completed', 'xp', 'streak', 'lastDay', 'trouble', 'review', 'storiesRead', 'xpDays', 'examBest', 'examBest2', 'examBest3', 'examsTaken', 'examsPassed', 'examFullMarks',
       'counters', 'toneStats', 'pairStats', 'dialoguesDone', 'badgesSeen', 'bestStreak', 'goalDays',
       'gameBest_match', 'gameBest_fall', 'lookStats', 'myWords', 'placementSeen', 'pandaName', 'tbDone',
-      'timeDays', 'wordDays', 'reportSeen', 'challenge', 'measureStats', 'idiomsRead']) {
+      'timeDays', 'wordDays', 'reportSeen', 'challenge', 'measureStats', 'idiomsRead', 'examBest4', 'listenDone',
+      'listenBest', 'synStats', 'readDone', 'readBest']) {
       await _prefs.remove(k);
     }
     notifyListeners();
